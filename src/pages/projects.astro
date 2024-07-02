@@ -1,0 +1,26 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import {getDesc, getTitle} from "../utils";
+import {getEntry} from "astro:content";
+import {Icon} from 'astro-icon/components'
+
+const {data} = await getEntry('data', 'projects');
+const projects: {
+    title: string,
+    repo: string,
+    description: string,
+}[] = data;
+---
+<PageLayout title={getTitle('Projects')} description={getDesc('The Projects Page')}>
+    <ul>
+        {projects.map(({title, repo, description}) => (
+                <li>
+                    <a href={repo} target="_blank" class="flex items-baseline p-4 card mb-4">
+                        <h2 class="font-bold text-xl text-nowrap">{title}</h2>
+                        <p class="ml-4 max-sm:hidden">{description}</p>
+                        <Icon class="ml-auto w-7 h-7 self-end shrink-0" name="material-symbols:open-in-new"/>
+                    </a>
+                </li>
+        ))}
+    </ul>
+</PageLayout>

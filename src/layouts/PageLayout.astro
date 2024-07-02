@@ -1,0 +1,45 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import {siteConfig} from "../config";
+
+interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+
+    comments?: boolean;
+}
+
+const {title, description, image, comments} = Astro.props
+---
+<BaseLayout title={title} description={description} image={image}>
+    <main class="mt-20 mb-4">
+        <div class="container-global">
+            <slot/>
+
+            {
+                comments && siteConfig.twikoo_uri &&
+                (
+                        <div class="bg-base transition-all rounded-xl px-6 pt-2 pb-4 mt-4">
+                            <div id="comment" class="h-64"></div>
+                        </div>
+                )
+            }
+        </div>
+    </main>
+</BaseLayout>
+
+{comments && siteConfig.twikoo_uri &&
+<script is:inline src="https://cdn.staticfile.net/twikoo/1.6.36/twikoo.all.min.js"/>}
+<script>
+    import {siteConfig} from "../config";
+
+    if (document.querySelector('#comment') !== null) {
+        let twikoo: any
+        twikoo.init({
+            envId: siteConfig.twikoo_uri,
+            el: '#comment',
+            lang: navigator.language,
+        })
+    }
+</script>

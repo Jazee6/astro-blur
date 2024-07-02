@@ -1,0 +1,15 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import {getEntry} from 'astro:content';
+import {getDesc, getTitle} from "../utils";
+
+const about = await getEntry('pages', 'about')
+const {data, render} = about;
+const {Content} = await render()
+---
+<PageLayout title={getTitle('About')} description={getDesc('The About Page')}>
+    <article class="article-global">
+        <h1>{data.title}</h1>
+        <Content/>
+    </article>
+</PageLayout>

@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Astro Blur",
+    "repo": "https://github.com/Jazee6/astro-blur",
+    "description": "A static blog theme built with Astro / 一个静态Astro博客主题"
+  },
+  {
+    "title": "Cloudflare AI Web",
+    "repo": "https://github.com/Jazee6/cloudflare-ai-web",
+    "description": "支持Gemini Pro / Cloudflare Workers AI / ChatGPT的融合Web平台"
+  }
+]

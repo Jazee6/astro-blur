@@ -1,0 +1,11 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import {getDesc, getTitle} from "../utils";
+---
+<BaseLayout title={getTitle('404')} description={getDesc('The 404 Page')}>
+    <main class="h-full w-full flex">
+        <div class="m-auto text-3xl font-bold">
+            Page Not Found 🤔
+        </div>
+    </main>
+</BaseLayout>

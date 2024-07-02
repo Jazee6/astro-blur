@@ -1,0 +1,80 @@
+---
+import type {CollectionEntry} from "astro:content";
+import type {Page} from "astro";
+import {Icon} from 'astro-icon/components'
+
+interface Props {
+    page: Page<CollectionEntry<'blog'>>
+    class?: string
+}
+
+const {page, class: className} = Astro.props
+
+let count = 1
+let l = page.currentPage
+let r = page.currentPage
+
+while (0 < l - 1 && r + 1 <= page.lastPage && count + 2 <= 5) {
+    count += 2;
+    l--;
+    r++;
+}
+while (0 < l - 1 && count < 5) {
+    count++;
+    l--;
+}
+while (r + 1 <= page.lastPage && count < 5) {
+    count++;
+    r++;
+}
+
+const pages: number[] = []
+if (l > 1) pages.push(1);
+if (l === 3) pages.push(2);
+if (l > 3) pages.push(-1);
+for (let i = l; i <= r; i++) pages.push(i);
+if (r < page.lastPage - 2) pages.push(-1);
+if (r === page.lastPage - 2) pages.push(page.lastPage - 1);
+if (r < page.lastPage) pages.push(page.lastPage);
+
+const getUrl = (page: number) => {
+    return page === 1 ? '/' : `/${page}`
+}
+---
+<div class:list={[className, 'flex space-x-2']}>
+    <a href={page.url.prev} class:list={["block p-2 rounded-xl bg-base transition-all",
+        page.url.prev ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
+        <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
+    </a>
+
+    <div class="flex rounded-xl bg-base transition-all font-bold">
+        {
+            pages.map(p => {
+                if (p === -1) {
+                    return (
+                            <Icon class="self-center" name="material-symbols:more-horiz"/>
+                    )
+                }
+                if (p === page.currentPage) {
+                    return (
+                            <a href={getUrl(p)}
+                               class="flex items-center justify-center w-12 rounded-xl bg-hover active:bg-active">
+                                {p}
+                            </a>
+                    )
+                }
+                return (
+                        <a href={getUrl(p)}
+                           class="flex items-center justify-center w-12 rounded-xl transition-all hover:bg-hover active:bg-active">
+                            {p}
+                        </a>
+                )
+            })
+        }
+    </div>
+
+    <a href={page.url.next} class:list={["block p-2 rounded-xl bg-base transition-all",
+        page.url.next ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
+        <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
+    </a>
+</div>

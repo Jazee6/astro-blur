@@ -1,0 +1,41 @@
+---
+import {siteConfig, socialLinks} from "../config";
+import {Icon} from 'astro-icon/components'
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+}
+
+const {title, description, image} = Astro.props
+---
+<BaseLayout title={title} description={description} image={image}>
+    <main class="mt-20 mb-4">
+        <div class="container-global flex items-start">
+            <aside class="bg-base transition-all basis-[16rem] shrink-0 rounded-xl max-md:hidden sticky top-20 mr-4">
+                <slot name="aside">
+                    <div class="p-4 flex flex-col">
+                        <img src={siteConfig.avatar} alt="avatar"
+                             class="w-56 h-56 rounded-full dark:brightness-75 transition-all"/>
+                        <div class="text-center font-bold text-xl mt-4">
+                            {siteConfig.author}
+                        </div>
+                        <div class="flex self-center mt-2">
+                            {
+                                socialLinks.map((link) => (
+                                        <a href={link.url} target="_blank">
+                                            <Icon class="w-8 h-8 hover:text-secondary transition-all" name={link.icon}/>
+                                        </a>
+                                ))
+                            }
+                        </div>
+                    </div>
+                </slot>
+            </aside>
+
+            <slot/>
+        </div>
+    </main>
+</BaseLayout>

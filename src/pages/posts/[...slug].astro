@@ -1,0 +1,99 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import {getDesc, getSlugPosts, getTitle} from "../../utils";
+import {siteConfig} from "../../config";
+import type {CollectionEntry} from "astro:content";
+
+export async function getStaticPaths() {
+    const posts = await getSlugPosts()
+    return posts.map((post) => ({
+        params: {slug: post.slug},
+        props: post,
+    }));
+}
+
+const {data} = Astro.props as CollectionEntry<'posts'>
+const {Content, headings, remarkPluginFrontmatter}: {
+    Content: any,
+    headings: { depth: number; slug: string; text: string }[],
+    remarkPluginFrontmatter: any
+} = await (Astro.props as any).render();
+---
+<MainLayout title={getTitle(data.title)} description={getDesc(data.description)}>
+    <slot slot="aside">
+        <div class="p-2">
+            <ul>
+                <li><a class="px-2 menu-item" href={`#${data.title}`}>{data.title}</a></li>
+                {headings.map(heading => {
+                    switch (heading.depth) {
+                        case 1:
+                            return (
+                                    <li><a class="px-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a></li>
+                            )
+                        case 2:
+                            return (
+                                    <li><a class="pl-6 pr-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a></li>
+                            )
+                    }
+                })}
+            </ul>
+        </div>
+    </slot>
+    <div class="grow">
+        <article class="article-global">
+            <h1 id={data.title}>{data.title}</h1>
+            <Content/>
+        </article>
+        {
+            siteConfig.twikoo_uri &&
+            (
+                    <div class="bg-base transition-all rounded-xl px-6 pt-2 pb-4 mt-4">
+                        <div id="comment" class="h-64"></div>
+                    </div>
+            )
+        }
+    </div>
+</MainLayout>
+
+<script>
+    import {debounce} from "../../utils";
+
+    const links = document.querySelectorAll('.menu-item');
+    const handler = debounce(() => {
+        const scrollY = window.scrollY;
+        if (scrollY < 84) {
+            links.forEach(link => link.classList.remove('bg-hover'));
+            links[0].classList.add('bg-hover');
+            history.replaceState(null, '', window.location.pathname);
+            return;
+        }
+        links.forEach(link => {
+            const href = link.getAttribute('href') as string;
+            const target = document.querySelector(href);
+            if (target) {
+                const offsetTop = target.getBoundingClientRect().top + scrollY - 84
+                if (scrollY >= offsetTop) {
+                    links.forEach(link => link.classList.remove('bg-hover'));
+                    link.classList.add('bg-hover');
+                    history.replaceState(null, '', href);
+                }
+            }
+        });
+    })
+    document.addEventListener('scroll', handler)
+    document.addEventListener('DOMContentLoaded', handler)
+</script>
+{siteConfig.twikoo_uri &&
+<script is:inline src="https://cdn.staticfile.net/twikoo/1.6.36/twikoo.all.min.js"/>}
+<script>
+    import {siteConfig} from "../../config";
+
+    if (siteConfig.twikoo_uri !== undefined) {
+        let twikoo: any = window['twikoo']
+        twikoo.init({
+            envId: siteConfig.twikoo_uri,
+            el: '#comment',
+            lang: navigator.language,
+        })
+    }
+</script>

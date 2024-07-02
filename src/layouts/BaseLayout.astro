@@ -1,0 +1,30 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import {siteConfig} from "../config";
+
+interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+}
+
+const {
+    title = `${siteConfig.title} - ${siteConfig.description}`,
+    description = siteConfig.description,
+    image = siteConfig.avatar
+} = Astro.props
+---
+
+<!DOCTYPE html>
+<html lang={siteConfig.language}>
+<head>
+    <BaseHead title={title} description={description} image={image}/>
+</head>
+<body>
+<Header/>
+<slot/>
+<Footer/>
+</body>
+</html>

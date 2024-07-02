@@ -1,0 +1,48 @@
+---
+import {siteConfig} from "../config";
+import type {Page} from "astro";
+import {getIndexPosts} from "../utils";
+import MainLayout from "../layouts/MainLayout.astro";
+import type {CollectionEntry} from 'astro:content';
+import Pagination from "../components/Pagination.astro";
+
+export async function getStaticPaths({paginate}) {
+    const posts = await getIndexPosts()
+    return paginate(posts, {pageSize: siteConfig.page_size})
+}
+
+interface Props {
+    page: Page<CollectionEntry<'posts'>>
+}
+
+const {page} = Astro.props
+---
+<MainLayout>
+    <div class="grow">
+        <ul class="space-y-4">
+            {
+                page.data.map((post) => (
+                        <li>
+                            <a class="h-36 card p-4 flex flex-col"
+                               href={`/posts/${post.slug}`}>
+                                <h2 class="text-xl font-bold line-clamp-1">
+                                    {post.data.title}
+                                </h2>
+                                <div class="line-clamp-2">
+                                    {post.data.description}
+                                </div>
+                                <div class="mt-auto flex">
+                                    <time class="ml-auto" datetime={post.data.pubDate.toISOString()}>
+                                        {
+                                            post.data.pubDate.toLocaleDateString()
+                                        }
+                                    </time>
+                                </div>
+                            </a>
+                        </li>
+                ))
+            }
+        </ul>
+        <Pagination class="mt-4 w-fit ml-auto" page={page}/>
+    </div>
+</MainLayout>

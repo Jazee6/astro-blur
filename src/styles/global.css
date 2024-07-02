@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html, body {
+        @apply h-full
+    }
+
+    html {
+        @apply scroll-smooth
+    }
+
+    body {
+        @apply flex flex-col text-primary bg-back transition-all
+    }
+
+    .light {
+        --color-base: theme('colors.white');
+        --color-back: theme('colors.neutral.100');
+        --color-primary: theme('colors.neutral.950');
+        --color-secondary: theme('colors.neutral.500');
+        --color-hover: theme('colors.neutral.200');
+        --color-active: theme('colors.neutral.300');
+    }
+
+    .dark {
+        --color-base: theme('colors.neutral.800');
+        --color-back: theme('colors.neutral.900');
+        --color-primary: theme('colors.neutral.50');
+        --color-secondary: theme('colors.neutral.500');
+        --color-hover: theme('colors.neutral.600');
+        --color-active: theme('colors.neutral.700');
+    }
+}
+
+@layer utilities {
+    .container-global {
+        @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl
+    }
+
+    .menu-item {
+        @apply cursor-pointer hover:bg-hover transition-all rounded-lg py-1 line-clamp-1 active:bg-active
+    }
+
+    .article-global {
+        @apply bg-base transition-all rounded-xl p-4 prose prose-neutral dark:prose-invert max-w-none prose-img:rounded-xl
+        prose-pre:break-words prose-pre:whitespace-pre-wrap prose-h1:pt-24 prose-h1:-mt-24 prose-h2:pt-24 prose-h2:-mt-[4.5rem]
+    }
+
+    .blur-global {
+        @apply backdrop-blur-[20px] backdrop-saturate-[180%]
+    }
+
+    .card {
+        @apply bg-base rounded-xl hover:ring ring-primary transition-all
+    }
+
+    .icon-button {
+        @apply w-8 h-8 hover:bg-hover transition-all rounded-full
+    }
+
+}
+
+.tk-footer {
+    @apply hidden
+}
+
+body.dark .astro-code,
+body.dark .astro-code span {
+    --shiki-dark: unset;
+    --shiki-dark-bg: unset;
+    --shiki-dark-font-style: unset;
+    --shiki-dark-font-weight: unset;
+    --shiki-dark-text-decoration: unset;
+
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* Optional, if you also want font styles */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+}
