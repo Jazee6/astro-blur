@@ -65,7 +65,7 @@
 }
 
 .tk-footer {
-    @apply hidden
+    @apply invisible
 }
 
 body.dark .astro-code,

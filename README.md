@@ -40,6 +40,8 @@ pnpm new
 - [ ] Next/Prev
 - [ ] hero image
 - [ ] AI摘要
+- [ ] 置顶
+- [ ] lazy load image and CLS
 
 ## 谁在使用 Astro Blur?
 
