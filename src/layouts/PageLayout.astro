@@ -35,7 +35,7 @@ const {title, description, image, comments} = Astro.props
     import {siteConfig} from "../config";
 
     if (document.querySelector('#comment') !== null) {
-        let twikoo: any
+        let twikoo: any = window['twikoo']
         twikoo.init({
             envId: siteConfig.twikoo_uri,
             el: '#comment',

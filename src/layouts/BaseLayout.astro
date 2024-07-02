@@ -22,6 +22,24 @@ const {
 <head>
     <BaseHead title={title} description={description} image={image}/>
 </head>
+<script is:inline>
+    const setTheme = (theme) => {
+        document.documentElement.classList.add(theme);
+    }
+
+    let theme = (() => {
+        if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+            return localStorage.getItem("theme");
+        }
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            return "dark";
+        }
+        return "light";
+    })();
+
+    theme === "light" ? setTheme("light") : setTheme("dark");
+    localStorage.setItem("theme", theme);
+</script>
 <body>
 <Header/>
 <slot/>
