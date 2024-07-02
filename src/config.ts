@@ -9,6 +9,7 @@ export const siteConfig: SiteConfig = {
     site: "https://jaze.top",
 
     page_size: 10,
+    twikoo_uri: 'https://c.blog.jaze.top/.netlify/functions/twikoo'
 }
 
 export const navBarConfig: NavBarConfig = {
