@@ -3,6 +3,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
 import {getDesc, getSlugPosts, getTitle} from "../../utils";
 import {siteConfig} from "../../config";
 import type {CollectionEntry} from "astro:content";
+import * as console from "node:console";
 
 export async function getStaticPaths() {
     const posts = await getSlugPosts()
@@ -16,8 +17,12 @@ const {data} = Astro.props as CollectionEntry<'posts'>
 const {Content, headings, remarkPluginFrontmatter}: {
     Content: any,
     headings: { depth: number; slug: string; text: string }[],
-    remarkPluginFrontmatter: any
+    remarkPluginFrontmatter: {
+        lastModified: string,
+    }
 } = await (Astro.props as any).render();
+
+console.log(remarkPluginFrontmatter)
 ---
 <MainLayout title={getTitle(data.title)} description={getDesc(data.description)}>
     <slot slot="aside">
@@ -41,6 +46,8 @@ const {Content, headings, remarkPluginFrontmatter}: {
     </slot>
     <div class="grow">
         <article class="article-global">
+            <!--last modified: {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString()}-->
+
             <h1 id={data.title}>{data.title}</h1>
             <Content/>
         </article>

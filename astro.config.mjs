@@ -10,7 +10,7 @@ import {siteConfig} from "./src/config";
 export default defineConfig({
     site: siteConfig.site,
     integrations: [mdx(), sitemap(), tailwind({
-        applyBaseStyles: false,
+        applyBaseStyles: false
     }), icon()],
     markdown: {
         shikiConfig: {
@@ -19,6 +19,9 @@ export default defineConfig({
                 dark: 'one-dark-pro'
             }
         },
-        // remarkPlugins: [remarkModifiedTime]
+        remarkPlugins: [remarkModifiedTime]
+    },
+    devToolbar: {
+        enabled: false
     }
 });

@@ -1,10 +1,12 @@
 import fs from "fs"
 import path from "path"
-import dayjs from "dayjs";
 
 function getDate() {
-    const today = dayjs()
-    return today.format("YYYY-MM-DD")
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = today.getMonth() + 1
+    const day = today.getDate()
+    return `${year}-${month < 10 ? "0" : ""}${month}-${day < 10 ? "0" : ""}${day}`
 }
 
 const args = process.argv.slice(2)

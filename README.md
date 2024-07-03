@@ -2,6 +2,10 @@
 
 一个静态Astro博客主题
 
+中文文档 | [English](./README.en.md)
+
+![Theme Preview](https://blog-cdn.jaze.top/2024/07/6e7813e44dad9a35be6c42b2c2e4eb53.webp)
+
 ## 特性
 
 - ✅ 100% 原生组件，纯静态生成
@@ -43,6 +47,7 @@ pnpm new
 - [ ] 置顶
 - [ ] lazy load image and CLS
 - [ ] twikoo_visitors
+- [ ] ...
 
 ## 谁在使用 Astro Blur?
 
