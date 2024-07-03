@@ -4,12 +4,12 @@ import {Icon} from 'astro-icon/components'
 ---
 
 <header class="fixed h-16 w-full blur-global">
-    <nav class="container-global h-full flex items-center">
+    <div class="container-global h-full flex items-center">
         <h1 class="text-xl font-bold cursor-pointer">
             <a href="/">{siteConfig.title}</a>
         </h1>
 
-        <div class="ml-auto max-sm:hidden">
+        <nav class="ml-auto max-sm:hidden">
             {
                 navBarConfig.links.map((link) => {
                     return (
@@ -18,10 +18,10 @@ import {Icon} from 'astro-icon/components'
                     )
                 })
             }
-        </div>
+        </nav>
         <div class="ml-auto hidden max-sm:flex icon-button cursor-pointer relative group">
             <Icon class="w-6 h-6 m-auto" name="material-symbols:menu-rounded"/>
-            <div class="absolute top-8 -left-full rounded-xl shadow-xl bg-base hidden group-hover:block animate-in fade-in">
+            <nav class="absolute top-8 -left-full rounded-xl shadow-xl bg-base hidden group-hover:block animate-in fade-in">
                 {
                     navBarConfig.links.map((link) => {
                         return (
@@ -34,10 +34,10 @@ import {Icon} from 'astro-icon/components'
                         )
                     })
                 }
-            </div>
+            </nav>
         </div>
         <button id="theme" class="ml-8 max-sm:ml-4 icon-button"></button>
-    </nav>
+    </div>
 </header>
 
 <script is:inline>

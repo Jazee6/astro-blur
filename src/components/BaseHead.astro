@@ -27,7 +27,9 @@ const {title, description, image} = Astro.props;
 <!-- Primary Meta Tags -->
 <title>{title}</title>
 <meta name="title" content={title}/>
+<meta name="keywords" content={siteConfig.keywords}/>
 <meta name="description" content={description}/>
+<meta name="author" content={siteConfig.author}/>
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website"/>

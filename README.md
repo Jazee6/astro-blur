@@ -42,6 +42,7 @@ pnpm new
 - [ ] AI摘要
 - [ ] 置顶
 - [ ] lazy load image and CLS
+- [ ] twikoo_visitors
 
 ## 谁在使用 Astro Blur?
 

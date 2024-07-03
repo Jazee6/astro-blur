@@ -2,6 +2,7 @@ export const siteConfig: SiteConfig = {
     title: "Hi! Jazee",
     language: "zh",
     description: "Jazee's personal blog. Powered by Astro Blog Theme Blur.",
+    keywords: "Jazee, blog, personal blog, Astro, Astro Blog Theme Blur",
     author: "Jazee",
     avatar: "/avatar.png",
     favicon: "/favicon.png",
@@ -40,6 +41,7 @@ interface SiteConfig {
     title: string
     language: string
     description: string
+    keywords: string
     author: string
     avatar: string
     favicon: string
