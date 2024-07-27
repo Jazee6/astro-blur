@@ -16,7 +16,7 @@ const links: {
         {links.map(({title, description, url, avatar}) => (
                 <li>
                     <a href={url} target="_blank" class="flex h-24 card p-2">
-                        <img src={avatar} alt={title} class="w-20 rounded-full"/>
+                        <img src={avatar} alt={title} class="w-20 rounded-full shrink-0"/>
                         <div class="ml-4">
                             <h2 class="font-bold text-xl line-clamp-1">{title}</h2>
                             <p class="line-clamp-2">{description}</p>

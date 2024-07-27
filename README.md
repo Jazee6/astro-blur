@@ -37,16 +37,17 @@ pnpm new
 
 ## 路线
 
+- [x] status badge
 - [ ] View Transition
 - [ ] 搜索
 - [ ] 标签
-- [ ] status badge(Last Modified)
 - [ ] Next/Prev
 - [ ] hero image
 - [ ] AI摘要
 - [ ] 置顶
 - [ ] lazy load image and CLS
 - [ ] twikoo_visitors
+- [ ] i18n
 - [ ] ...
 
 ## 谁在使用 Astro Blur?

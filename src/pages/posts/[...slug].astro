@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
 import {getDesc, getSlugPosts, getTitle} from "../../utils";
 import {siteConfig} from "../../config";
 import type {CollectionEntry} from "astro:content";
-import * as console from "node:console";
+import Badge from "../../components/Badge.astro";
 
 export async function getStaticPaths() {
     const posts = await getSlugPosts()
@@ -21,8 +21,6 @@ const {Content, headings, remarkPluginFrontmatter}: {
         lastModified: string,
     }
 } = await (Astro.props as any).render();
-
-console.log(remarkPluginFrontmatter)
 ---
 <MainLayout title={getTitle(data.title)} description={getDesc(data.description)}>
     <slot slot="aside">
@@ -46,16 +44,25 @@ console.log(remarkPluginFrontmatter)
     </slot>
     <div class="grow">
         <article class="article-global">
-            <!--last modified: {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString()}-->
-
             <h1 id={data.title}>{data.title}</h1>
+
+            <div class="flex space-x-4">
+                <Badge icon="material-symbols:edit-calendar-rounded">
+                    {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString()}
+                </Badge>
+                {siteConfig.twikoo_uri &&
+                        <Badge icon="material-symbols:bar-chart-rounded">
+                            <span id="twikoo_visitors">0</span>
+                        </Badge>}
+            </div>
+
             <Content/>
         </article>
         {
             siteConfig.twikoo_uri &&
             (
                     <div class="bg-base transition-all rounded-xl px-6 pt-2 pb-4 mt-4">
-                        <div id="comment" class="h-64"></div>
+                        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2"></div>
                     </div>
             )
         }
