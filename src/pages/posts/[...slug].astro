@@ -48,11 +48,11 @@ const {Content, headings, remarkPluginFrontmatter}: {
 
             <div class="flex space-x-4">
                 <Badge icon="material-symbols:edit-calendar-rounded">
-                    {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString()}
+                    {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>
                 {siteConfig.twikoo_uri &&
                         <Badge icon="material-symbols:bar-chart-rounded">
-                            <span id="twikoo_visitors">0</span>
+                            <span id="twikoo_visitors">...</span>
                         </Badge>}
             </div>
 

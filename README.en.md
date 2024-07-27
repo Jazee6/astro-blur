@@ -37,16 +37,17 @@ pnpm new
 
 ## Roadmap
 
+- [x] status badge
+- [x] twikoo_visitors
 - [ ] View Transition
 - [ ] Search
 - [ ] Tags
-- [ ] status badge(Last Modified)
 - [ ] Next/Prev
 - [ ] hero image
 - [ ] AI summary
 - [ ] Top
 - [ ] lazy load image and CLS
-- [ ] twikoo_visitors
+- [ ] i18n
 - [ ] ...
 
 ## Who is using Astro Blur?

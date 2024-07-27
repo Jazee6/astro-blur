@@ -38,6 +38,7 @@ pnpm new
 ## 路线
 
 - [x] status badge
+- [x] twikoo_visitors
 - [ ] View Transition
 - [ ] 搜索
 - [ ] 标签
@@ -46,7 +47,6 @@ pnpm new
 - [ ] AI摘要
 - [ ] 置顶
 - [ ] lazy load image and CLS
-- [ ] twikoo_visitors
 - [ ] i18n
 - [ ] ...
 

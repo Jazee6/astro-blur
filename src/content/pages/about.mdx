@@ -1,0 +1,17 @@
+---
+title: 'About'
+---
+import {Icon} from 'astro-icon/components'
+import {socialLinks} from '../../config'
+
+<div className="flex self-center mt-2 space-x-2">
+    {
+        socialLinks.map((link) => (
+            <a href={link.url} target="_blank">
+                <Icon class="w-8 h-8 hover:text-secondary transition-all" name={link.icon}/>
+            </a>
+        ))
+    }
+</div>
+
+本站内容默认采用CC BY-NC 4.0协议，要查看此许可证的副本，请访问 http://creativecommons.org/licenses/by-nc/4.0/

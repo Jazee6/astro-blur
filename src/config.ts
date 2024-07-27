@@ -34,6 +34,11 @@ export const socialLinks: SocialLink[] = [
         label: 'GitHub',
         icon: 'mdi-github',
         url: 'https://github.com/Jazee6'
+    },
+    {
+        label: 'Email',
+        icon: 'material-symbols:mail-rounded',
+        url: 'mailto:jazee@jaze.top'
     }
 ]
 
