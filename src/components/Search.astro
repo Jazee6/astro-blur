@@ -1,0 +1,28 @@
+---
+
+---
+<div id="search-container" class="fixed hidden inset-0 z-10 backdrop-blur animate-in fade-in">
+    <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full">
+        <form class="w-3/4 mx-auto max-md:w-full animate-in slide-in-from-top">
+            <label>
+                <input name="search" placeholder="Search...(developing...)"
+                       class="w-full outline-0 bg-base transition-all rounded-xl h-16 p-4 shadow-xl text-xl"/>
+            </label>
+        </form>
+        <div>
+
+        </div>
+    </div>
+</div>
+
+<script is:inline>
+    const searchContainer = document.querySelector("#search-container");
+    searchContainer.addEventListener("click", (e) => {
+        if (e.target === searchContainer) {
+            searchContainer.classList.add("hidden")
+        }
+    })
+    searchContainer.querySelector("form").addEventListener("submit", (e) => {
+        e.preventDefault()
+    })
+</script>

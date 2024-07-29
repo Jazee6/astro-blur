@@ -47,7 +47,6 @@ pnpm new
 - [ ] AI summary
 - [ ] Top
 - [ ] lazy load image and CLS
-- [ ] i18n
 - [ ] ...
 
 ## Who is using Astro Blur?

@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import {siteConfig} from "../config";
+import Search from "../components/Search.astro";
 
 interface Props {
     title?: string;
@@ -25,22 +26,23 @@ const {
 <script is:inline>
     const setTheme = (theme) => {
         document.documentElement.classList.add(theme);
-    }
-
-    let theme = (() => {
-        if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
-            return localStorage.getItem("theme");
         }
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            return "dark";
-        }
-        return "light";
-    })();
 
-    theme === "light" ? setTheme("light") : setTheme("dark");
-    localStorage.setItem("theme", theme);
+        let theme = (() => {
+            if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+                return localStorage.getItem("theme");
+                }
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                return "dark";
+                }
+            return "light";
+            })();
+
+        theme === "light" ? setTheme("light") : setTheme("dark");
+        localStorage.setItem("theme", theme);
 </script>
 <body>
+<Search/>
 <Header/>
 <slot/>
 <Footer/>
