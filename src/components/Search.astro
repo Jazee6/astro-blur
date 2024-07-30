@@ -29,12 +29,17 @@
     searchInput.addEventListener("input", async e => {
         if (e.target.dataset.loaded !== 'true') {
             e.target.dataset.loaded = 'true'
-            window.pagefind = await import("/pagefind/pagefind.js");
+            window.pagefind = await import("/dist/pagefind/pagefind.js");
+            pagefind.init()
         }
 
         const input = e.target.value.trim()
         if (input.length) {
-            const search = await window.pagefind.search(input)
+            // window.pagefind.preload(input)
+            const search = await window.pagefind.debouncedSearch(input)
+            if (search === null) {
+                return
+            }
             const searchResults = document.querySelector("#search-results")
             searchResults.innerHTML = ""
             for (const result of search.results) {

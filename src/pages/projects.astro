@@ -12,7 +12,7 @@ const projects: {
 }[] = data;
 ---
 <PageLayout title={getTitle('Projects')} description={getDesc('The Projects Page')}>
-    <ul>
+    <ul data-pagefind-body>
         {projects.map(({title, repo, description}) => (
                 <li>
                     <a href={repo} target="_blank" class="flex items-baseline p-4 card mb-4">

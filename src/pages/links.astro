@@ -12,7 +12,7 @@ const links: {
 }[] = data.sort(() => Math.random() - 0.5);
 ---
 <PageLayout comments={true} title={getTitle('Links')} description={getDesc('The Links Page')}>
-    <ul class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
+    <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
         {links.map(({title, description, url, avatar}) => (
                 <li>
                     <a href={url} target="_blank" class="flex h-24 card p-2">
