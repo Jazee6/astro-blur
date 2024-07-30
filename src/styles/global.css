@@ -16,21 +16,21 @@
     }
 
     .light {
-        --color-base: theme('colors.white');
-        --color-back: theme('colors.neutral.100');
-        --color-primary: theme('colors.neutral.950');
-        --color-secondary: theme('colors.neutral.500');
-        --color-hover: theme('colors.neutral.200');
-        --color-active: theme('colors.neutral.300');
+        --color-base: 255 255 255;
+        --color-back: 245 245 245;
+        --color-primary: 10 10 10;
+        --color-secondary: 115 115 115;
+        --color-hover: 229 229 229;
+        --color-active: 212 212 212;
     }
 
     .dark {
-        --color-base: theme('colors.neutral.800');
-        --color-back: theme('colors.neutral.900');
-        --color-primary: theme('colors.neutral.50');
-        --color-secondary: theme('colors.neutral.500');
-        --color-hover: theme('colors.neutral.600');
-        --color-active: theme('colors.neutral.700');
+        --color-base: 38 38 38;
+        --color-back: 23 23 23;
+        --color-primary: 250 250 250;
+        --color-secondary: 115 115 115;
+        --color-hover: 82 82 82;
+        --color-active: 64 64 64;
     }
 }
 
