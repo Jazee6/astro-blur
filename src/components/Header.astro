@@ -50,6 +50,20 @@ import {Icon} from 'astro-icon/components'
         searchContainer.classList.toggle("hidden")
         searchContainer.querySelector("input").focus()
     })
+
+    document.documentElement.addEventListener("keydown", (e) => {
+        if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+            const searchContainer = document.querySelector("#search-container")
+            searchContainer.classList.remove("hidden")
+            setTimeout(() => {
+                searchContainer.querySelector("input").focus()
+            })
+        }
+        if (e.key === "Escape") {
+            const searchContainer = document.querySelector("#search-container")
+            searchContainer.classList.add("hidden")
+        }
+    })
 </script>
 
 <script is:inline>

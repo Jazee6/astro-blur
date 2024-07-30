@@ -2,14 +2,14 @@
 
 ---
 <div id="search-container" class="fixed hidden inset-0 z-10 backdrop-blur animate-in fade-in">
-    <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full">
+    <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full h-full">
         <form class="w-3/4 mx-auto max-md:w-full animate-in slide-in-from-top">
             <label>
-                <input name="search" placeholder="Search...(developing...)"
+                <input name="search" autocomplete="off" placeholder="Search..."
                        class="w-full outline-0 bg-base transition-all rounded-xl h-16 p-4 shadow-xl text-xl"/>
             </label>
         </form>
-        <div>
+        <div id="search-results" class="w-3/4 mx-auto max-md:w-full h-full overflow-y-auto rounded-xl mt-1">
 
         </div>
     </div>
@@ -17,12 +17,35 @@
 
 <script is:inline>
     const searchContainer = document.querySelector("#search-container");
-    searchContainer.addEventListener("click", (e) => {
-        if (e.target === searchContainer) {
+    const searchInput = searchContainer?.querySelector("input")
+    searchContainer?.addEventListener("click", (e) => {
+        if (e.target !== searchInput) {
             searchContainer.classList.add("hidden")
         }
     })
-    searchContainer.querySelector("form").addEventListener("submit", (e) => {
+    searchContainer?.querySelector("form")?.addEventListener("submit", (e) => {
         e.preventDefault()
+    })
+    searchInput.addEventListener("input", async e => {
+        if (e.target.dataset.loaded !== 'true') {
+            e.target.dataset.loaded = 'true'
+            window.pagefind = await import("/pagefind/pagefind.js");
+        }
+
+        const input = e.target.value.trim()
+        if (input.length) {
+            const search = await window.pagefind.search(input)
+            const searchResults = document.querySelector("#search-results")
+            searchResults.innerHTML = ""
+            for (const result of search.results) {
+                const data = await result.data()
+                searchResults.innerHTML += `
+                    <a href="${data.url}" class="block px-4 py-2 rounded-xl bg-base/80 blur-global animate-in fade-in mt-1 first:mt-0 hover:bg-base transition-all">
+                        <h2 class="text-xl font-bold line-clamp-1">${data.meta.title}</h2>
+                        <p class="line-clamp-3">${data.excerpt}</p>
+                    </a>
+                `
+            }
+        }
     })
 </script>

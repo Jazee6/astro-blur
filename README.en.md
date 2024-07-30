@@ -39,14 +39,15 @@ pnpm new
 
 - [x] status badge
 - [x] twikoo_visitors
+- [x] Search
 - [ ] View Transition
-- [ ] Search
 - [ ] Tags
 - [ ] Next/Prev
 - [ ] hero image
 - [ ] AI summary
 - [ ] Top
 - [ ] lazy load image and CLS
+- [ ] touch optimize
 - [ ] ...
 
 ## Who is using Astro Blur?

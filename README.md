@@ -39,14 +39,15 @@ pnpm new
 
 - [x] status badge
 - [x] twikoo_visitors
+- [x] 搜索
 - [ ] View Transition
-- [ ] 搜索
 - [ ] 标签
 - [ ] Next/Prev
 - [ ] hero image
 - [ ] AI摘要
 - [ ] 置顶
 - [ ] lazy load image and CLS
+- [ ] touch optimize
 - [ ] ...
 
 ## 谁在使用 Astro Blur?

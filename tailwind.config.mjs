@@ -5,12 +5,12 @@ export default {
     theme: {
         extend: {
             colors: {
-                base: 'var(--color-base)',
-                back: 'var(--color-back)',
-                primary: 'var(--color-primary)',
-                secondary: 'var(--color-secondary)',
-                hover: 'var(--color-hover)',
-                active: 'var(--color-active)',
+                base: 'rgb(var(--color-base))',
+                back: 'rgb(var(--color-back))',
+                primary: 'rgb(var(--color-primary))',
+                secondary: 'rgb(var(--color-secondary))',
+                hover: 'rgb(var(--color-hover))',
+                active: 'rgb(var(--color-active))',
             },
         },
     },
