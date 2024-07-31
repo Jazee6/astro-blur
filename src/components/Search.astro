@@ -26,31 +26,54 @@
     searchContainer?.querySelector("form")?.addEventListener("submit", (e) => {
         e.preventDefault()
     })
+
+    const cancelablePromise = promise => {
+        const controller = new AbortController()
+        const signal = controller.signal
+
+        const wrappedPromise = new Promise((resolve, reject) => {
+            signal.addEventListener("abort", () => {
+                reject('Promise Aborted')
+            })
+
+            promise.then(resolve, reject)
+        })
+
+        return {
+            promise: wrappedPromise,
+            cancel: () => controller.abort()
+        }
+    }
+    let abort = null
     searchInput.addEventListener("input", async e => {
         if (e.target.dataset.loaded !== 'true') {
             e.target.dataset.loaded = 'true'
-            window.pagefind = await import("/pagefind/pagefind.js");
+            window.pagefind = await import("/dist/pagefind/pagefind.js");
             pagefind.init()
         }
 
         const input = e.target.value.trim()
         if (input.length) {
-            // window.pagefind.preload(input)
-            const search = await window.pagefind.debouncedSearch(input)
+            const search = await pagefind.debouncedSearch(input)
             if (search === null) {
                 return
             }
+
+            abort && abort()
             const searchResults = document.querySelector("#search-results")
             searchResults.innerHTML = ""
-            for (const result of search.results) {
-                const data = await result.data()
-                searchResults.innerHTML += `
+            abort = cancelablePromise(new Promise(async resolve => {
+                for (const result of search.results) {
+                    const data = await result.data()
+                    searchResults.innerHTML += `
                     <a href="${data.url}" class="block px-4 py-2 rounded-xl bg-base/80 blur-global animate-in fade-in mt-1 first:mt-0 hover:bg-base transition-all">
                         <h2 class="text-xl font-bold line-clamp-1">${data.meta.title}</h2>
                         <p class="line-clamp-3">${data.excerpt}</p>
                     </a>
                 `
-            }
+                }
+                resolve()
+            })).cancel
         }
     })
 </script>
