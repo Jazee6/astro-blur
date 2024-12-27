@@ -2,10 +2,12 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import {getEntry} from 'astro:content';
 import {getDesc, getTitle} from "../utils";
+import {render} from 'astro:content';
+import type {CollectionEntry} from 'astro:content';
 
-const about = await getEntry('pages', 'about')
-const {data, render} = about;
-const {Content} = await render()
+const about = await getEntry('pages', 'about') as CollectionEntry<'pages'>;
+const {data} = about;
+const {Content} = await render(about);
 ---
 <PageLayout title={getTitle('About')} description={getDesc('The About Page')}>
     <article class="article-global" data-pagefind-body>
