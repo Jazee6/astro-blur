@@ -1,19 +1,14 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
 import {getDesc, getTitle} from "../utils";
-import {getEntry} from "astro:content";
+import {getCollection} from "astro:content";
 
-const {data} = await getEntry('data', 'links');
-const links: {
-    title: string,
-    description: string,
-    url: string,
-    avatar: string,
-}[] = data.sort(() => Math.random() - 0.5);
+const links = await getCollection("links");
+const data = links.map(({data}) => data).sort(() => Math.random() - 0.5);
 ---
 <PageLayout comments={true} title={getTitle('Links')} description={getDesc('The Links Page')}>
     <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
-        {links.map(({title, description, url, avatar}) => (
+        {data.map(({title, description, url, avatar}) => (
                 <li>
                     <a href={url} target="_blank" class="flex h-24 card p-2">
                         <img src={avatar} alt={title} class="w-20 rounded-full shrink-0"/>

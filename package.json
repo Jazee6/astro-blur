@@ -1,7 +1,7 @@
 {
   "name": "astro-blur",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -12,13 +12,13 @@
     "new": "node scripts/new-post.js"
   },
   "dependencies": {
-    "@astrojs/check": "^0.8.3",
-    "@astrojs/mdx": "^3.1.9",
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/mdx": "^4.0.3",
     "@astrojs/rss": "^4.0.10",
     "@astrojs/sitemap": "^3.2.1",
     "@astrojs/tailwind": "^5.1.4",
     "@iconify-json/material-symbols": "^1.2.12",
-    "astro": "^4.16.18",
+    "astro": "^5.1.1",
     "astro-icon": "^1.1.4",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"

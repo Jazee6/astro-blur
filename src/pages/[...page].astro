@@ -1,13 +1,18 @@
 ---
 import {siteConfig} from "../config";
-import type {Page} from "astro";
-import {getIndexPosts} from "../utils";
 import MainLayout from "../layouts/MainLayout.astro";
-import type {CollectionEntry} from 'astro:content';
+import {getCollection} from 'astro:content';
 import Pagination from "../components/Pagination.astro";
+import type {CollectionEntry} from 'astro:content';
+import type {Page} from "astro";
 
 export async function getStaticPaths({paginate}) {
-    const posts = await getIndexPosts()
+    const posts = await getCollection('posts', ({data}) => {
+        return import.meta.env.PROD ? data.isDraft !== true : true
+    })
+    posts.sort(
+        (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+    )
     return paginate(posts, {pageSize: siteConfig.page_size})
 }
 
@@ -24,7 +29,7 @@ const {page} = Astro.props
                 page.data.map((post) => (
                         <li>
                             <a class="h-36 card p-4 flex flex-col"
-                               href={`/posts/${post.slug}`}>
+                               href={`/posts/${post.id}`}>
                                 <h2 class="text-xl font-bold line-clamp-1">
                                     {post.data.title}
                                 </h2>

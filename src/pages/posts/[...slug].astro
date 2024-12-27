@@ -1,26 +1,29 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
-import {getDesc, getSlugPosts, getTitle} from "../../utils";
+import {getDesc, getTitle} from "../../utils";
 import {siteConfig} from "../../config";
-import type {CollectionEntry} from "astro:content";
 import Badge from "../../components/Badge.astro";
+import Comment from "../../components/Comment.astro";
+import {getCollection, render} from 'astro:content';
+import type {CollectionEntry} from 'astro:content';
 
 export async function getStaticPaths() {
-    const posts = await getSlugPosts()
+    const posts = await getCollection('posts', ({data}) => {
+        return import.meta.env.PROD ? data.isDraft !== true : true
+    })
     return posts.map((post) => ({
-        params: {slug: post.slug},
-        props: post,
+        params: {slug: post.id},
+        props: {post},
     }));
 }
 
-const {data} = Astro.props as CollectionEntry<'posts'>
-const {Content, headings, remarkPluginFrontmatter}: {
-    Content: any,
-    headings: { depth: number; slug: string; text: string }[],
-    remarkPluginFrontmatter: {
-        lastModified: string,
-    }
-} = await (Astro.props as any).render();
+interface Props {
+    post: CollectionEntry<'posts'>;
+}
+
+const {post} = Astro.props;
+const {data} = post;
+const {Content, headings, remarkPluginFrontmatter} = await render(post);
 ---
 <MainLayout title={getTitle(data.title)} description={getDesc(data.description)}>
     <slot slot="aside">
@@ -67,10 +70,15 @@ const {Content, headings, remarkPluginFrontmatter}: {
             )
         }
     </div>
+    {
+        siteConfig.twikoo_uri &&
+            <Comment/>
+    }
 </MainLayout>
 
 <script>
     import {debounce} from "../../utils";
+    import {siteConfig} from "../../config";
 
     const links = document.querySelectorAll('.menu-item');
     const handler = debounce(() => {
@@ -96,11 +104,6 @@ const {Content, headings, remarkPluginFrontmatter}: {
     })
     document.addEventListener('scroll', handler)
     document.addEventListener('DOMContentLoaded', handler)
-</script>
-{siteConfig.twikoo_uri &&
-<script is:inline src="https://cdn.staticfile.net/twikoo/1.6.36/twikoo.all.min.js"/>}
-<script>
-    import {siteConfig} from "../../config";
 
     if (siteConfig.twikoo_uri !== undefined) {
         let twikoo: any = window['twikoo']
