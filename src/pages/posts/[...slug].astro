@@ -50,10 +50,10 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
                 </aside>
         }
 
-        <div class="grow article-container" data-pagefind-body>
-            <h1 class="text-4xl font-bold" id={data.title}>{data.title}</h1>
+        <article class="article base-card grow" data-pagefind-body>
+            <h1 id={data.title}>{data.title}</h1>
 
-            <div class="flex space-x-4 mt-4">
+            <div class="flex space-x-4 not-prose">
                 <Badge icon="material-symbols:edit-calendar-rounded">
                     {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>
@@ -63,10 +63,8 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
                         </Badge>}
             </div>
 
-            <article class="article">
-                <Content/>
-            </article>
-        </div>
+            <Content/>
+        </article>
     </div>
 </PageLayout>
 
