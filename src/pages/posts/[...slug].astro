@@ -63,22 +63,13 @@ const {Content, headings, remarkPluginFrontmatter} = await render(post);
         </article>
         {
             siteConfig.twikoo_uri &&
-            (
-                    <div class="bg-base transition-all rounded-xl px-6 pt-2 pb-4 mt-4">
-                        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2"></div>
-                    </div>
-            )
+                <Comment/>
         }
     </div>
-    {
-        siteConfig.twikoo_uri &&
-            <Comment/>
-    }
 </MainLayout>
 
 <script>
     import {debounce} from "../../utils";
-    import {siteConfig} from "../../config";
 
     const links = document.querySelectorAll('.menu-item');
     const handler = debounce(() => {
@@ -104,13 +95,4 @@ const {Content, headings, remarkPluginFrontmatter} = await render(post);
     })
     document.addEventListener('scroll', handler)
     document.addEventListener('DOMContentLoaded', handler)
-
-    if (siteConfig.twikoo_uri !== undefined) {
-        let twikoo: any = window['twikoo']
-        twikoo.init({
-            envId: siteConfig.twikoo_uri,
-            el: '#comment',
-            lang: navigator.language,
-        })
-    }
 </script>
