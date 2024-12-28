@@ -40,6 +40,11 @@ const {Content, headings, remarkPluginFrontmatter} = await render(post);
                             return (
                                     <li><a class="pl-6 pr-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a></li>
                             )
+                        case 3:
+                            return (
+                                    <li><a class="pl-10 pr-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a>
+                                    </li>
+                            )
                     }
                 })}
             </ul>
