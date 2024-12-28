@@ -43,8 +43,12 @@
         @apply cursor-pointer hover:bg-hover transition-all rounded-lg py-1 line-clamp-1 active:bg-active
     }
 
-    .article-global {
-        @apply bg-base transition-all rounded-xl p-4 prose prose-neutral dark:prose-invert max-w-none
+    .article-container {
+        @apply bg-base transition-all rounded-xl p-4
+    }
+
+    .article {
+        @apply prose prose-neutral dark:prose-invert max-w-none
         prose-img:rounded-xl prose-img:max-h-screen prose-pre:break-words prose-pre:whitespace-pre-wrap
         prose-h1:pt-24 prose-h1:-mt-24
         prose-h2:pt-24 prose-h2:-mt-[4.5rem]
