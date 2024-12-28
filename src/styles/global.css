@@ -71,8 +71,8 @@
     @apply hidden
 }
 
-body.dark .astro-code,
-body.dark .astro-code span {
+html.dark .astro-code,
+html.dark .astro-code span {
     --shiki-dark: unset;
     --shiki-dark-bg: unset;
     --shiki-dark-font-style: unset;
