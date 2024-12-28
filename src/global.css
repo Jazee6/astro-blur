@@ -50,7 +50,7 @@
     .article {
         @apply prose prose-neutral dark:prose-invert max-w-none
         prose-img:rounded-xl prose-img:max-h-screen prose-pre:break-words prose-pre:whitespace-pre-wrap
-        prose-h2:pt-24 prose-h2:-mt-[4.5rem]
+        prose-h2:scroll-my-20 prose-h3:scroll-my-20
     }
 
     .blur-global {
