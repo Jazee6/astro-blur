@@ -16,7 +16,7 @@ const {title, description, image} = Astro.props
         <div class="container-global flex items-start">
             <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4">
                 <slot name="aside">
-                    <div class="bg-base transition-all rounded-xl p-4 flex flex-col">
+                    <div class="base-card flex flex-col">
                         <img src={siteConfig.avatar} alt="avatar"
                              class="w-56 h-56 rounded-full dark:brightness-75 transition-all"/>
                         <div class="text-center font-bold text-xl mt-4">
