@@ -1,11 +1,10 @@
 ---
-import MainLayout from "../../layouts/MainLayout.astro";
 import {getDesc, getTitle} from "../../utils";
 import {siteConfig} from "../../config";
 import Badge from "../../components/Badge.astro";
-import Comment from "../../components/Comment.astro";
 import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
+import PageLayout from "../../layouts/PageLayout.astro";
 
 export async function getStaticPaths() {
     const posts = await getCollection('posts', ({data}) => {
@@ -24,32 +23,37 @@ interface Props {
 const {post} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
+const haveToc = headings.some(heading => heading.depth === 1 || heading.depth === 2);
 ---
-<MainLayout title={getTitle(data.title)} description={getDesc(data.description)}>
-    <slot slot="aside">
-        <div class="p-2">
-            <ul>
-                <li><a class="px-2 menu-item" href={`#${data.title}`}>{data.title}</a></li>
-                {headings.map(heading => {
-                    switch (heading.depth) {
-                        case 1:
-                            return (
-                                    <li><a class="px-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a></li>
-                            )
-                        case 2:
-                            return (
-                                    <li><a class="pl-6 pr-2 menu-item" href={`#${heading.slug}`}>{heading.text}</a></li>
-                            )
-                    }
-                })}
-            </ul>
-        </div>
-    </slot>
-    <div class="grow">
-        <article class="article-global" data-pagefind-body>
-            <h1 id={data.title}>{data.title}</h1>
+<PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)}>
+    <div class="flex items-start">
+        {
+            haveToc &&
+                <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-all rounded-xl p-2">
+                    <ul>
+                        {headings.map(heading => {
+                            switch (heading.depth) {
+                                case 1:
+                                    return (
+                                            <li><a class="px-2 menu-item"
+                                                   href={`#${heading.slug}`}>{heading.text}</a>
+                                            </li>
+                                    )
+                                case 2:
+                                    return (
+                                            <li><a class="pl-6 pr-2 menu-item"
+                                                   href={`#${heading.slug}`}>{heading.text}</a></li>
+                                    )
+                            }
+                        })}
+                    </ul>
+                </aside>
+        }
 
-            <div class="flex space-x-4">
+        <div class="grow article-container" data-pagefind-body>
+            <h1 class="text-4xl font-bold" id={data.title}>{data.title}</h1>
+
+            <div class="flex space-x-4 mt-4">
                 <Badge icon="material-symbols:edit-calendar-rounded">
                     {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>
@@ -59,14 +63,12 @@ const {Content, headings, remarkPluginFrontmatter} = await render(post);
                         </Badge>}
             </div>
 
-            <Content/>
-        </article>
-        {
-            siteConfig.twikoo_uri &&
-                <Comment/>
-        }
+            <article class="article">
+                <Content/>
+            </article>
+        </div>
     </div>
-</MainLayout>
+</PageLayout>
 
 <script>
     import {debounce} from "../../utils";

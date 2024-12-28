@@ -10,7 +10,7 @@ const {data} = about;
 const {Content} = await render(about);
 ---
 <PageLayout title={getTitle('About')} description={getDesc('The About Page')}>
-    <article class="article-global" data-pagefind-body>
+    <article class="article-container article" data-pagefind-body>
         <h1>{data.title}</h1>
         <Content/>
     </article>
