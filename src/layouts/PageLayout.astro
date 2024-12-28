@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
 import {siteConfig} from "../config";
+import Comment from "../components/Comment.astro";
 
 interface Props {
     title?: string;
@@ -19,27 +20,10 @@ const {title, description, image, comments} = Astro.props
 
             {
                 comments && siteConfig.twikoo_uri &&
-                (
-                        <div class="bg-base transition-all rounded-xl px-6 pt-2 pb-4 mt-4">
-                            <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2"></div>
-                        </div>
-                )
+                    <Comment/>
             }
         </div>
     </main>
 </BaseLayout>
 
-{comments && siteConfig.twikoo_uri &&
-<script is:inline src="https://cdn.staticfile.net/twikoo/1.6.36/twikoo.all.min.js"/>}
-<script>
-    import {siteConfig} from "../config";
 
-    if (document.querySelector('#comment') !== null) {
-        let twikoo: any = window['twikoo']
-        twikoo.init({
-            envId: siteConfig.twikoo_uri,
-            el: '#comment',
-            lang: navigator.language,
-        })
-    }
-</script>
