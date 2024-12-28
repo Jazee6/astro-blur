@@ -39,7 +39,7 @@ const {page} = Astro.props
                                 <div class="mt-auto flex">
                                     <time class="ml-auto" datetime={post.data.pubDate.toISOString()}>
                                         {
-                                            post.data.pubDate.toLocaleDateString()
+                                            post.data.pubDate.toLocaleDateString(siteConfig.language)
                                         }
                                     </time>
                                 </div>
