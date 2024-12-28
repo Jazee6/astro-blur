@@ -73,19 +73,12 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
 
     const links = document.querySelectorAll('.menu-item');
     const handler = debounce(() => {
-        const scrollY = window.scrollY;
-        if (scrollY < 84) {
-            links.forEach(link => link.classList.remove('bg-hover'));
-            links[0].classList.add('bg-hover');
-            history.replaceState(null, '', window.location.pathname);
-            return;
-        }
         for (const link of links) {
             const href = link.getAttribute('href') as string;
             const target = document.querySelector(`[id="${href.slice(1)}"]`);
             if (target) {
-                const offsetTop = target.getBoundingClientRect().top + scrollY - 84
-                if (scrollY >= offsetTop) {
+                const offsetTop = target.getBoundingClientRect().top - document.body.clientHeight / 3;
+                if (offsetTop <= 0) {
                     links.forEach(link => link.classList.remove('bg-hover'));
                     link.classList.add('bg-hover');
                     history.replaceState(null, '', href);
