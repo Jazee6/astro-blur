@@ -89,7 +89,6 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
                     links.forEach(link => link.classList.remove('bg-hover'));
                     link.classList.add('bg-hover');
                     history.replaceState(null, '', href);
-                    break;
                 }
             }
         }
