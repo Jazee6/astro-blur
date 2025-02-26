@@ -5,7 +5,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
+@theme inline {
     --color-base: rgb(var(--color-base));
     --color-back: rgb(var(--color-back));
     --color-primary: rgb(var(--color-primary));
@@ -59,7 +59,7 @@
 }
 
 @utility icon-button {
-    @apply w-8 h-8 hover:bg-hover transition-all rounded-full;
+    @apply w-8 h-8 hover:bg-hover transition-all rounded-full cursor-pointer;
 }
 
 @utility badge {
