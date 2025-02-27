@@ -77,7 +77,7 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
             const href = link.getAttribute('href') as string;
             const target = document.querySelector(`[id="${href.slice(1)}"]`);
             if (target) {
-                const offsetTop = target.getBoundingClientRect().top - document.body.clientHeight / 3;
+                const offsetTop = target.getBoundingClientRect().top - 128;
                 if (offsetTop <= 0) {
                     links.forEach(link => link.classList.remove('bg-hover'));
                     link.classList.add('bg-hover');
