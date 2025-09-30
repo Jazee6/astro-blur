@@ -35,7 +35,7 @@ Cloudflare AI Web 4.0 正式发布。这是一次从底层到体验的「完全�
 - 动效增强：TextEffect、TextShimmer、ViewTransition（React 19 实验特性）。
 - 用封装Remark的StreamDown库渲染消息，支持代码高亮、数学公式（KaTeX）、Mermaid 图表。
 
-### Roadmap
+## Roadmap
 
 - 图像生成工作台页面。
 - 工具调用与多模态能力增强。
