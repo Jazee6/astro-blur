@@ -14,24 +14,6 @@
     --color-active: rgb(var(--color-active));
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-    *,
-    ::after,
-    ::before,
-    ::backdrop,
-    ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
-    }
-}
-
 @utility container-global {
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
 }
@@ -46,12 +28,12 @@
 
 @utility article {
     @apply prose prose-neutral dark:prose-invert max-w-none
-    prose-img:rounded-xl prose-img:max-h-screen prose-pre:break-words prose-pre:whitespace-pre-wrap
+    prose-img:rounded-xl prose-img:max-h-screen prose-pre:wrap-break-word prose-pre:whitespace-pre-wrap
     prose-h2:scroll-my-20 prose-h3:scroll-my-20;
 }
 
 @utility blur-global {
-    @apply backdrop-blur-[20px] backdrop-saturate-[180%];
+    @apply backdrop-blur-[20px] backdrop-saturate-180;
 }
 
 @utility card {
