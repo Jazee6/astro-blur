@@ -1,5 +1,11 @@
 [
   {
+    "id": 4,
+    "title": "Web Chat",
+    "repo": "https://github.com/Jazee6/web-chat",
+    "description": "Room based serverless chat platform built on Cloudflare"
+  },
+  {
     "id": 3,
     "title": "Easy Auth",
     "repo": "https://github.com/Jazee6/easy-auth",
