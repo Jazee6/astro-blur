@@ -33,7 +33,7 @@
 
         const wrappedPromise = new Promise((resolve, reject) => {
             signal.addEventListener("abort", () => {
-                reject('Promise Aborted')
+                reject(new Error('Promise Aborted'))
             })
 
             promise.then(resolve, reject)

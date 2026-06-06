@@ -4,7 +4,11 @@ import {getDesc, getTitle} from "../utils";
 import {getCollection} from "astro:content";
 
 const links = await getCollection("links");
-const data = links.map(({data}) => data).sort(() => Math.random() - 0.5);
+const data = links.map(({data}) => data);
+for (let i = data.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [data[i], data[j]] = [data[j], data[i]];
+}
 ---
 <PageLayout comments={true} title={getTitle('Links')} description={getDesc('The Links Page')}>
     <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">

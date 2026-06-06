@@ -4,8 +4,8 @@ import {getDesc, getTitle} from "../utils";
 import {getCollection} from "astro:content";
 import {Icon} from 'astro-icon/components'
 
-const links = await getCollection("projects");
-const data = links.map(({data}) => data);
+const projects = await getCollection("projects");
+const data = projects.map(({data}) => data);
 ---
 <PageLayout title={getTitle('Projects')} description={getDesc('The Projects Page')}>
     <ul data-pagefind-body>

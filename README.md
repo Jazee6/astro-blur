@@ -1,8 +1,8 @@
 # Astro Blur
 
-一个静态Astro博客主题
+一个静态 Astro 博客主题
 
-中文文档 | [English](./README.en.md)
+中文 | [English](./README.en.md)
 
 ![Theme Preview](https://blog-cdn.jaze.top/2024/07/6e7813e44dad9a35be6c42b2c2e4eb53.webp)
 
@@ -35,23 +35,8 @@ pnpm new
 ./src/config.ts
 ```
 
-## 路线
-
-- [x] status badge
-- [x] twikoo_visitors
-- [x] 搜索
-- [ ] View Transition
-- [ ] 标签
-- [ ] Next/Prev
-- [ ] hero image
-- [ ] AI摘要
-- [ ] 置顶
-- [ ] lazy load image and CLS
-- [ ] touch optimize
-- [ ] ...
-
 ## 谁在使用 Astro Blur?
 
 - [Hi! Jazee](https://jaze.top)
 
-欢迎提交PR添加你的站点
+欢迎提交 PR 添加你的站点

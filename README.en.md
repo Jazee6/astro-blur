@@ -2,7 +2,7 @@
 
 A static Astro blog theme
 
-[中文文档](./README.md) | English
+[中文](./README.md) | English
 
 ![Theme Preview](https://blog-cdn.jaze.top/2024/07/6e7813e44dad9a35be6c42b2c2e4eb53.webp)
 
@@ -34,21 +34,6 @@ pnpm new
 # Config modify
 ./src/config.ts
 ```
-
-## Roadmap
-
-- [x] status badge
-- [x] twikoo_visitors
-- [x] Search
-- [ ] View Transition
-- [ ] Tags
-- [ ] Next/Prev
-- [ ] hero image
-- [ ] AI summary
-- [ ] Top
-- [ ] lazy load image and CLS
-- [ ] touch optimize
-- [ ] ...
 
 ## Who is using Astro Blur?
 
