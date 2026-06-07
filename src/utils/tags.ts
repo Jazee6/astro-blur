@@ -35,5 +35,8 @@ export function filterPostsByTag(posts: CollectionEntry<'posts'>[], tag: string)
     const normalized = tag.toLowerCase();
     return posts
         .filter(post => post.data.tags.some(t => t.toLowerCase() === normalized))
-        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+        .sort((a, b) => {
+            if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1;
+            return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+        });
 }

@@ -10,8 +10,14 @@ const {post} = Astro.props;
 ---
 
 <li>
-    <a class="h-36 card p-4 flex flex-col"
+    <a class="relative h-36 card p-4 flex flex-col overflow-hidden"
        href={`/posts/${post.id}`}>
+        {post.data.pinned && (
+            <div
+                class="absolute top-0 right-0 w-0 h-0 border-t-[28px] border-t-primary border-l-[28px] border-l-transparent rounded-tr-xl z-10 pointer-events-none"
+                aria-hidden="true"
+            />
+        )}
         <h2 class="text-xl font-bold line-clamp-1">
             {post.data.title}
         </h2>

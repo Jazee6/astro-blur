@@ -8,6 +8,7 @@ export const postSchema = z.object({
     pubDate: z.coerce.date(),
     // heroImage: z.string().optional(),
     isDraft: z.boolean().optional(),
+    pinned: z.boolean().optional().default(false),
     tags: z.array(z.string()).optional().default([]),
 })
 

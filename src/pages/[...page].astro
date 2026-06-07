@@ -11,9 +11,10 @@ export async function getStaticPaths({paginate}) {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     })
-    posts.sort(
-        (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-    )
+    posts.sort((a, b) => {
+        if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1
+        return b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+    })
     return paginate(posts, {pageSize: siteConfig.page_size})
 }
 
