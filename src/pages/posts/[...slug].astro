@@ -74,7 +74,7 @@ const haveToc = headings.some(heading => heading.depth <= 3);
         <article class="article base-card grow" data-pagefind-body>
             <h1 id={data.title}>{data.title}</h1>
 
-            <div class="flex space-x-4 not-prose">
+            <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
                 <Badge icon="material-symbols:edit-calendar-rounded">
                     {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>
@@ -82,6 +82,11 @@ const haveToc = headings.some(heading => heading.depth <= 3);
                         <Badge icon="material-symbols:bar-chart-rounded">
                             <span id="twikoo_visitors">...</span>
                         </Badge>}
+                {data.tags.map(tag => (
+                    <a href={`/tags/${tag.toLowerCase()}`}>
+                        <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
+                    </a>
+                ))}
             </div>
 
             <Content/>

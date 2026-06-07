@@ -1,0 +1,43 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+import {getCollection} from 'astro:content';
+import {getAllTags, filterPostsByTag} from "../../utils/tags";
+import {getTitle} from "../../utils";
+import type {CollectionEntry} from 'astro:content';
+
+export async function getStaticPaths() {
+    const posts = await getCollection('posts', ({data}) => {
+        return import.meta.env.PROD ? data.isDraft !== true : true
+    });
+    const tags = getAllTags(posts);
+    return tags.map(tag => ({
+        params: {tag},
+        props: {tag, posts: filterPostsByTag(posts, tag)},
+    }));
+}
+
+interface Props {
+    tag: string;
+    posts: CollectionEntry<'posts'>[];
+}
+
+const {tag, posts} = Astro.props;
+---
+
+<MainLayout title={getTitle(`Tag: ${tag}`)} description={`Posts tagged with "${tag}"`}>
+    <div class="grow flex flex-col gap-2">
+        <div class='flex justify-between items-baseline p-1'>
+            <h1 class="text-2xl font-bold">#{tag}</h1>
+            <a href="/tags" class="text-secondary hover:text-primary transition-colors">
+                ← All Tags
+            </a>
+        </div>
+
+        <ul class="space-y-4">
+            {posts.map(post => (
+                    <PostCard post={post}/>
+            ))}
+        </ul>
+    </div>
+</MainLayout>

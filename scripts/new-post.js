@@ -36,6 +36,7 @@ const content = `---
 title: ${args[0]}
 description: ${args[0]}
 pubDate: ${getDate()}
+tags: []
 ---
 `
 

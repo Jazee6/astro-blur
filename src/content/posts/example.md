@@ -2,6 +2,7 @@
 title: Example Post
 description: Example post description.
 pubDate: 2024-07-02
+tags: ["Markdown", "Example"]
 ---
 
 这是一个综合的 Markdown 语法演示文档，展示了常用的格式化功能。

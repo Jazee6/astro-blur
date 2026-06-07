@@ -1,5 +1,6 @@
-import {defineCollection, z} from 'astro:content';
+import {defineCollection,} from 'astro:content';
 import {file, glob} from 'astro/loaders';
+import {z} from 'astro/zod'
 
 export const postSchema = z.object({
     title: z.string(),
@@ -7,6 +8,7 @@ export const postSchema = z.object({
     pubDate: z.coerce.date(),
     // heroImage: z.string().optional(),
     isDraft: z.boolean().optional(),
+    tags: z.array(z.string()).optional().default([]),
 })
 
 const posts = defineCollection({

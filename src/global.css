@@ -45,7 +45,7 @@
 }
 
 @utility badge {
-    @apply bg-back rounded-xl transition-all px-2 py-1 flex items-center font-bold;
+    @apply bg-back rounded-xl transition-all px-2 py-1 flex items-center font-bold hover:bg-hover;
 }
 
 @layer base {
