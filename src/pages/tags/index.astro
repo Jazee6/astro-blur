@@ -5,10 +5,6 @@ import {getCollection} from 'astro:content';
 import {getAllTags, getTagCounts} from "../../utils/tags";
 import {getTitle} from "../../utils";
 
-export async function getStaticPaths() {
-    return [{params: {}}];
-}
-
 const posts = await getCollection('posts', ({data}) => {
     return import.meta.env.PROD ? data.isDraft !== true : true
 });

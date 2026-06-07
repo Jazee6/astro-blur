@@ -1,16 +1,17 @@
 import type {CollectionEntry} from 'astro:content';
 
 /**
- * 获取所有去重标签（按字母排序）
+ * 获取所有去重标签（按数量降序排序）
  */
 export function getAllTags(posts: CollectionEntry<'posts'>[]): string[] {
+    const counts = getTagCounts(posts);
     const tagSet = new Set<string>();
     for (const post of posts) {
         for (const tag of post.data.tags) {
             tagSet.add(tag.toLowerCase());
         }
     }
-    return Array.from(tagSet).sort();
+    return Array.from(tagSet).sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
 }
 
 /**
