@@ -100,24 +100,26 @@ const haveToc = headings.some(heading => heading.depth <= 3);
                 <Content/>
             </article>
 
-            <nav class="flex gap-4">
-                {prev ? (
-                                <a href={`/posts/${prev.id}`}
-                                   class="flex-1 card p-3 transition-all">
-                                    <p class="text-secondary text-sm mb-1">← 上一篇</p>
-                                    <p class="font-bold truncate">{prev.data.title}</p>
-                                </a>
-                    ) :
-                        <div class="flex-1"/>}
-                {next ? (
-                                <a href={`/posts/${next.id}`}
-                                   class="flex-1 card p-3 transition-all text-right">
-                                    <p class="text-secondary text-sm mb-1">下一篇 →</p>
-                                    <p class="font-bold truncate">{next.data.title}</p>
-                                </a>
-                    ) :
-                        <div class="flex-1"/>}
-            </nav>
+            {(prev || next) && (
+                    <nav class="flex gap-4">
+                        {prev ? (
+                                        <a href={`/posts/${prev.id}`}
+                                           class="flex-1 card p-3 transition-all">
+                                            <p class="text-secondary text-sm mb-1">← 上一篇</p>
+                                            <p class="font-bold truncate">{prev.data.title}</p>
+                                        </a>
+                            ) :
+                                <div class="flex-1"/>}
+                        {next ? (
+                                        <a href={`/posts/${next.id}`}
+                                           class="flex-1 card p-3 transition-all text-right">
+                                            <p class="text-secondary text-sm mb-1">下一篇 →</p>
+                                            <p class="font-bold truncate">{next.data.title}</p>
+                                        </a>
+                            ) :
+                                <div class="flex-1"/>}
+                    </nav>
+            )}
         </div>
     </div>
 </PageLayout>
