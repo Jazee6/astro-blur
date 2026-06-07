@@ -7,6 +7,7 @@ import {siteConfig} from "./src/config";
 
 import tailwindcss from '@tailwindcss/vite';
 import RehypeImage from "./src/utils/rehype-image.tsx";
+import {unified} from '@astrojs/markdown-remark';
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,8 +20,10 @@ export default defineConfig({
                 dark: 'github-dark'
             }
         },
-        remarkPlugins: [remarkModifiedTime],
-        rehypePlugins: [RehypeImage],
+        processor: unified({
+            remarkPlugins: [remarkModifiedTime],
+            rehypePlugins: [RehypeImage],
+        }),
     },
     devToolbar: {
         enabled: false

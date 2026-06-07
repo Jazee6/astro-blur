@@ -23,37 +23,58 @@ interface Props {
 const {post} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
-const haveToc = headings.some(heading => heading.depth === 2 || heading.depth === 3);
+const haveToc = headings.some(heading => heading.depth <= 3);
 ---
 <PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)}>
     <div class="flex items-start">
         {
-            haveToc &&
-                <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-all rounded-xl p-2">
-                    <ul>
-                        {headings.map(heading => {
-                            switch (heading.depth) {
-                                case 2:
-                                    return (
-                                            <li><a class="px-2 menu-item"
-                                                   href={`#${heading.slug}`}>{heading.text}</a>
-                                            </li>
-                                    )
-                                case 3:
-                                    return (
-                                            <li><a class="pl-6 pr-2 menu-item"
-                                                   href={`#${heading.slug}`}>{heading.text}</a></li>
-                                    )
-                            }
-                        })}
-                    </ul>
-                </aside>
+            haveToc && (() => {
+                type TocGroup = { heading: typeof headings[number], subs: typeof headings };
+                const groups: TocGroup[] = [];
+                let current: TocGroup | null = null;
+                for (const heading of headings) {
+                    if (heading.depth === 2) {
+                        current = {heading, subs: []};
+                        groups.push(current);
+                    } else if (heading.depth === 3 && current) {
+                        current.subs.push(heading);
+                    }
+                }
+                const tocIds = headings
+                    .filter(h => h.depth <= 3)
+                    .map(h => h.slug);
+                return (
+                        <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-all rounded-xl p-2"
+                               data-headings={JSON.stringify(tocIds)}>
+                            <ul>
+                                {groups.map(({heading, subs}) => (
+                                        <li>
+                                            <a class="px-2 menu-item" href={`#${heading.slug}`}>
+                                                {heading.text}
+                                            </a>
+                                            {subs.length > 0 && (
+                                                    <ul>
+                                                        {subs.map(sub => (
+                                                                <li>
+                                                                    <a class="pl-6 pr-2 menu-item" href={`#${sub.slug}`}>
+                                                                        {sub.text}
+                                                                    </a>
+                                                                </li>
+                                                        ))}
+                                                    </ul>
+                                            )}
+                                        </li>
+                                ))}
+                            </ul>
+                        </aside>
+                );
+            })()
         }
 
         <article class="article base-card grow" data-pagefind-body>
             <h1 id={data.title}>{data.title}</h1>
 
-            <div class="flex space-x-4 not-prose">
+            <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
                 <Badge icon="material-symbols:edit-calendar-rounded">
                     {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>
@@ -61,6 +82,11 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
                         <Badge icon="material-symbols:bar-chart-rounded">
                             <span id="twikoo_visitors">...</span>
                         </Badge>}
+                {data.tags.map(tag => (
+                    <a href={`/tags/${tag.toLowerCase()}`}>
+                        <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
+                    </a>
+                ))}
             </div>
 
             <Content/>
@@ -71,21 +97,44 @@ const haveToc = headings.some(heading => heading.depth === 2 || heading.depth ==
 <script>
     import {debounce} from "../../utils";
 
-    const links = document.querySelectorAll('.menu-item');
-    const handler = debounce(() => {
+    const aside = document.querySelector<HTMLElement>('[data-headings]');
+    if (aside) {
+        const ids: string[] = JSON.parse(aside.dataset.headings!);
+        const links = document.querySelectorAll<HTMLAnchorElement>('.menu-item');
+        const linkMap = new Map<string, Element>();
+        const targets: { el: Element, link: Element }[] = [];
+
         for (const link of links) {
-            const href = link.getAttribute('href') as string;
-            const target = document.querySelector(`[id="${href.slice(1)}"]`);
-            if (target) {
-                const offsetTop = target.getBoundingClientRect().top - 128;
-                if (offsetTop <= 0) {
-                    links.forEach(link => link.classList.remove('bg-hover'));
-                    link.classList.add('bg-hover');
-                    history.replaceState(null, '', href);
+            linkMap.set(link.getAttribute('href')!, link);
+        }
+        for (const id of ids) {
+            const el = document.getElementById(id);
+            const link = linkMap.get(`#${id}`);
+            if (el && link) targets.push({el, link});
+        }
+
+        const update = () => {
+            let active: Element | null = null;
+            for (const {el, link} of targets) {
+                if (el.getBoundingClientRect().top <= 128) {
+                    active = link;
                 }
             }
+            links.forEach(l => l.classList.remove('bg-hover'));
+            if (active) {
+                active.classList.add('bg-hover');
+                history.replaceState(null, '', active.getAttribute('href'));
+            }
+        };
+
+        const handler = debounce(update);
+        document.addEventListener('scroll', handler);
+
+        const init = () => setTimeout(update, 50);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
         }
-    })
-    document.addEventListener('scroll', handler)
-    document.addEventListener('DOMContentLoaded', handler)
+    }
 </script>

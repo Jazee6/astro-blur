@@ -2,7 +2,7 @@
 
 一个静态 Astro 博客主题
 
-中文 ｜ [English](./README.en.md)
+中文 | [English](./README.en.md)
 
 ![Theme Preview](https://blog-cdn.jaze.top/2024/07/6e7813e44dad9a35be6c42b2c2e4eb53.webp)
 

@@ -2,7 +2,7 @@
 
 A static Astro blog theme
 
-[中文](./README.md) ｜ English
+[中文](./README.md) | English
 
 ![Theme Preview](https://blog-cdn.jaze.top/2024/07/6e7813e44dad9a35be6c42b2c2e4eb53.webp)
 

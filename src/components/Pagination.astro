@@ -6,9 +6,10 @@ import {Icon} from 'astro-icon/components'
 interface Props {
     page: Page<CollectionEntry<'posts'>>
     class?: string
+    getUrl?: (page: number) => string
 }
 
-const {page, class: className} = Astro.props
+const {page, class: className, getUrl: customGetUrl} = Astro.props
 
 let count = 1
 let l = page.currentPage
@@ -38,7 +39,7 @@ if (r === page.lastPage - 2) pages.push(page.lastPage - 1);
 if (r < page.lastPage) pages.push(page.lastPage);
 
 const getUrl = (page: number) => {
-    return page === 1 ? '/' : `/${page}`
+    return customGetUrl ? customGetUrl(page) : (page === 1 ? '/' : `/${page}`)
 }
 ---
 <div class:list={[className, 'flex space-x-2']}>
