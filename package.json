@@ -22,6 +22,7 @@
     "@tailwindcss/vite": "^4.3.0",
     "astro": "6.4.4",
     "astro-icon": "^1.1.5",
+    "medium-zoom": "^1.1.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
   },
