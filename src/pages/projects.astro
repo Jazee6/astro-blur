@@ -5,7 +5,9 @@ import {getCollection} from "astro:content";
 import {Icon} from 'astro-icon/components'
 
 const projects = await getCollection("projects");
-const data = projects.map(({data}) => data);
+const data = projects
+    .sort((a, b) => Number(b.id) - Number(a.id))
+    .map(({data}) => data);
 ---
 <PageLayout title={getTitle('Projects')} description={getDesc('The Projects Page')}>
     <ul data-pagefind-body>

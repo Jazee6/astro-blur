@@ -7,6 +7,7 @@ const RehypeImage = () => {
             if (node.tagName === 'img') {
                 node.properties = node.properties || {};
                 node.properties.loading = 'lazy';
+                node.properties.dataZoomable = '';
             }
         });
     };

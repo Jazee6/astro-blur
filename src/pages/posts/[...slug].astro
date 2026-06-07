@@ -10,17 +10,24 @@ export async function getStaticPaths() {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     })
-    return posts.map((post) => ({
+    posts.sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+    return posts.map((post, index) => ({
         params: {slug: post.id},
-        props: {post},
+        props: {
+            post,
+            prev: index > 0 ? posts[index - 1] : null,
+            next: index < posts.length - 1 ? posts[index + 1] : null,
+        },
     }));
 }
 
 interface Props {
     post: CollectionEntry<'posts'>;
+    prev: CollectionEntry<'posts'> | null;
+    next: CollectionEntry<'posts'> | null;
 }
 
-const {post} = Astro.props;
+const {post, prev, next} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
 const haveToc = headings.some(heading => heading.depth <= 3);
@@ -71,31 +78,58 @@ const haveToc = headings.some(heading => heading.depth <= 3);
             })()
         }
 
-        <article class="article base-card grow" data-pagefind-body>
-            <h1 id={data.title}>{data.title}</h1>
+        <div class='flex flex-col gap-4'>
+            <article class="article base-card grow" data-pagefind-body>
+                <h1 id={data.title}>{data.title}</h1>
 
-            <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
-                <Badge icon="material-symbols:edit-calendar-rounded">
-                    {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
-                </Badge>
-                {siteConfig.twikoo_uri &&
-                        <Badge icon="material-symbols:bar-chart-rounded">
-                            <span id="twikoo_visitors">...</span>
-                        </Badge>}
-                {data.tags.map(tag => (
-                    <a href={`/tags/${tag.toLowerCase()}`}>
-                        <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
-                    </a>
-                ))}
-            </div>
+                <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
+                    <Badge icon="material-symbols:edit-calendar-rounded">
+                        {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
+                    </Badge>
+                    {siteConfig.twikoo_uri &&
+                            <Badge icon="material-symbols:bar-chart-rounded">
+                                <span id="twikoo_visitors">...</span>
+                            </Badge>}
+                    {data.tags.map(tag => (
+                            <a href={`/tags/${tag.toLowerCase()}`}>
+                                <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
+                            </a>
+                    ))}
+                </div>
 
-            <Content/>
-        </article>
+                <Content/>
+            </article>
+
+            <nav class="flex gap-4">
+                {prev ? (
+                                <a href={`/posts/${prev.id}`}
+                                   class="flex-1 card p-3 transition-all">
+                                    <p class="text-secondary text-sm mb-1">← 上一篇</p>
+                                    <p class="font-bold truncate">{prev.data.title}</p>
+                                </a>
+                    ) :
+                        <div class="flex-1"/>}
+                {next ? (
+                                <a href={`/posts/${next.id}`}
+                                   class="flex-1 card p-3 transition-all text-right">
+                                    <p class="text-secondary text-sm mb-1">下一篇 →</p>
+                                    <p class="font-bold truncate">{next.data.title}</p>
+                                </a>
+                    ) :
+                        <div class="flex-1"/>}
+            </nav>
+        </div>
     </div>
 </PageLayout>
 
 <script>
     import {debounce} from "../../utils";
+    import mediumZoom from 'medium-zoom';
+
+    mediumZoom('[data-zoomable]', {
+        margin: 24,
+        background: 'rgba(0, 0, 0, 0.85)',
+    });
 
     const aside = document.querySelector<HTMLElement>('[data-headings]');
     if (aside) {

@@ -84,6 +84,18 @@
     @apply hidden
 }
 
+[data-zoomable] {
+    @apply cursor-zoom-in
+}
+
+.medium-zoom-overlay {
+    @apply z-50 backdrop-blur-xl
+}
+
+.medium-zoom-image--opened {
+    @apply z-50 rounded-xl
+}
+
 html.dark .astro-code,
 html.dark .astro-code span {
     --shiki-dark: unset;

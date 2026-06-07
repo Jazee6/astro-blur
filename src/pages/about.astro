@@ -15,3 +15,12 @@ const {Content} = await render(about);
         <Content/>
     </article>
 </PageLayout>
+
+<script>
+    import mediumZoom from 'medium-zoom';
+
+    mediumZoom('[data-zoomable]', {
+        margin: 24,
+        background: 'rgba(0, 0, 0, 0.85)',
+    });
+</script>
