@@ -3,6 +3,7 @@ title: 腕上饭卡—手表模拟全加密卡
 description: 适用于能开通空白门卡的，带NFC功能的手表/手环模拟门卡/饭卡
 pubDate: 2021-02-12
 heroImage: https://blog-cdn.jaze.top/2023/11/4e6e2d22b8dc64ad333724ae7c413c7f.webp
+tags: ["NFC", "Smart Card", "Hardware"]
 ---
 
 适用于能开通**空白门卡**的，带**NFC**功能的手表/手环模拟门卡/饭卡

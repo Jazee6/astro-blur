@@ -2,6 +2,7 @@
 title: Cloudflare AI Web 4.0
 description: Cloudflare AI Web 4.0正式推出
 pubDate: 2025-9-30
+tags: ["Next.js", "AI", "Cloudflare"]
 ---
 
 ![banner](https://blog-cdn.jaze.top/2025/09/71724a1cf8d68bb6701a938ff9cc38a9)

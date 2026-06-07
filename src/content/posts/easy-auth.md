@@ -2,6 +2,7 @@
 title: Easy Auth
 description: Easy Auth 使用指南
 pubDate: 2026-01-07
+tags: ["Authentication", "OIDC", "Better Auth"]
 ---
 
 ![banner](https://blog-cdn.jaze.top/2026/01/a698368ee0accb0d8928b028990020a3.avif)
