@@ -14,7 +14,7 @@ for (let i = data.length - 1; i > 0; i--) {
     <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
         {data.map(({title, description, url, avatar}) => (
                 <li>
-                    <a href={url} target="_blank" class="flex h-24 card p-2">
+                    <a href={url} target="_blank" rel="noopener noreferrer" class="flex h-24 card p-2">
                         <img src={avatar} alt={title} class="w-20 rounded-full shrink-0"/>
                         <div class="ml-4">
                             <h2 class="font-bold text-xl line-clamp-1">{title}</h2>

@@ -63,15 +63,17 @@
             const searchResults = document.querySelector("#search-results")
             searchResults.innerHTML = ""
             abort = cancelablePromise(new Promise(async resolve => {
+                let html = ""
                 for (const result of search.results) {
                     const data = await result.data()
-                    searchResults.innerHTML += `
+                    html += `
                     <a href="${data.url}" class="block px-4 py-2 rounded-xl bg-base/80 blur-global animate-in fade-in mt-1 first:mt-0 hover:bg-base transition-all">
                         <h2 class="text-xl font-bold line-clamp-1">${data.meta.title}</h2>
                         <p class="line-clamp-3">${data.excerpt}</p>
                     </a>
                 `
                 }
+                searchResults.innerHTML = html
                 resolve()
             })).cancel
         }

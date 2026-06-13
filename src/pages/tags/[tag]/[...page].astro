@@ -13,7 +13,7 @@ export async function getStaticPaths({paginate}) {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     });
-    const tags = getAllTags(posts);
+    const {tags} = getAllTags(posts);
     return tags.flatMap(tag => {
         const tagPosts = filterPostsByTag(posts, tag);
         return paginate(tagPosts, {

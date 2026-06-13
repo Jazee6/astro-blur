@@ -7,7 +7,7 @@ import {socialLinks} from '../../config'
 <div className="flex self-center mt-2 space-x-2">
     {
         socialLinks.map((link) => (
-            <a href={link.url} target="_blank">
+            <a href={link.url} target="_blank" rel="noopener noreferrer">
                 <Icon class="w-8 h-8 hover:text-secondary transition-all" name={link.icon}/>
             </a>
         ))

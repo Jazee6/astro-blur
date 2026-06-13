@@ -1,5 +1,5 @@
 ---
-import {getDesc, getTitle} from "../../utils";
+import {getDesc, getTitle, sortPosts} from "../../utils";
 import {siteConfig} from "../../config";
 import Badge from "../../components/Badge.astro";
 import {getCollection, render} from 'astro:content';
@@ -10,7 +10,7 @@ export async function getStaticPaths() {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     })
-    posts.sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+    sortPosts(posts);
     return posts.map((post, index) => ({
         params: {slug: post.id},
         props: {
@@ -31,52 +31,64 @@ const {post, prev, next} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
 const haveToc = headings.some(heading => heading.depth <= 3);
+
+type TocGroup = { heading: typeof headings[number], subs: typeof headings };
+const tocGroups: TocGroup[] = [];
+let currentGroup: TocGroup | null = null;
+for (const heading of headings) {
+    if (heading.depth === 2) {
+        currentGroup = {heading, subs: []};
+        tocGroups.push(currentGroup);
+    } else if (heading.depth === 3 && currentGroup) {
+        currentGroup.subs.push(heading);
+    }
+}
+const tocIds = headings.filter(h => h.depth <= 3).map(h => h.slug);
+
+const articleUrl = new URL(`/posts/${post.id}`, Astro.site).href;
+const blogPostingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: data.title,
+    description: data.description,
+    datePublished: data.pubDate.toISOString(),
+    dateModified: remarkPluginFrontmatter.lastModified,
+    author: {
+        '@type': 'Person',
+        name: siteConfig.author,
+        url: siteConfig.site,
+    },
+    url: articleUrl,
+};
 ---
-<PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)}>
+<PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
+    <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(blogPostingJsonLd)}/>
     <div class="flex items-start">
-        {
-            haveToc && (() => {
-                type TocGroup = { heading: typeof headings[number], subs: typeof headings };
-                const groups: TocGroup[] = [];
-                let current: TocGroup | null = null;
-                for (const heading of headings) {
-                    if (heading.depth === 2) {
-                        current = {heading, subs: []};
-                        groups.push(current);
-                    } else if (heading.depth === 3 && current) {
-                        current.subs.push(heading);
-                    }
-                }
-                const tocIds = headings
-                    .filter(h => h.depth <= 3)
-                    .map(h => h.slug);
-                return (
-                        <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-all rounded-xl p-2"
-                               data-headings={JSON.stringify(tocIds)}>
-                            <ul>
-                                {groups.map(({heading, subs}) => (
+        {haveToc && (
+            <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-all rounded-xl p-2"
+                   data-headings={JSON.stringify(tocIds)}>
+                <ul>
+                    {tocGroups.map(({heading, subs}) => (
+                        <li>
+                            <a class="px-2 menu-item" href={`#${heading.slug}`}>
+                                {heading.text}
+                            </a>
+                            {subs.length > 0 && (
+                                <ul>
+                                    {subs.map(sub => (
                                         <li>
-                                            <a class="px-2 menu-item" href={`#${heading.slug}`}>
-                                                {heading.text}
+                                            <a class="pl-6 pr-2 menu-item" href={`#${sub.slug}`}>
+                                                {sub.text}
                                             </a>
-                                            {subs.length > 0 && (
-                                                    <ul>
-                                                        {subs.map(sub => (
-                                                                <li>
-                                                                    <a class="pl-6 pr-2 menu-item" href={`#${sub.slug}`}>
-                                                                        {sub.text}
-                                                                    </a>
-                                                                </li>
-                                                        ))}
-                                                    </ul>
-                                            )}
                                         </li>
-                                ))}
-                            </ul>
-                        </aside>
-                );
-            })()
-        }
+                                    ))}
+                                </ul>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </aside>
+        )}
 
         <div class='flex flex-col gap-4 grow'>
             <article class="article base-card grow" data-pagefind-body>

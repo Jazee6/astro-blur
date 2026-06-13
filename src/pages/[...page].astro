@@ -4,6 +4,7 @@ import MainLayout from "../layouts/MainLayout.astro";
 import {getCollection} from 'astro:content';
 import Pagination from "../components/Pagination.astro";
 import PostCard from "../components/PostCard.astro";
+import {sortPosts} from "../utils";
 import type {CollectionEntry} from 'astro:content';
 import type {Page} from "astro";
 
@@ -11,10 +12,7 @@ export async function getStaticPaths({paginate}) {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     })
-    posts.sort((a, b) => {
-        if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1
-        return b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-    })
+    sortPosts(posts)
     return paginate(posts, {pageSize: siteConfig.page_size})
 }
 

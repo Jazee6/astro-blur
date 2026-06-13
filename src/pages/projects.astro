@@ -13,7 +13,7 @@ const data = projects
     <ul data-pagefind-body>
         {data.map(({title, repo, description}) => (
                 <li>
-                    <a href={repo} target="_blank" class="flex items-baseline p-4 card mb-4">
+                    <a href={repo} target="_blank" rel="noopener noreferrer" class="flex items-baseline p-4 card mb-4">
                         <h2 class="font-bold text-xl text-nowrap">{title}</h2>
                         <p class="ml-4 max-sm:hidden">{description}</p>
                         <Icon class="ml-auto w-7 h-7 self-end shrink-0" name="material-symbols:open-in-new"/>
