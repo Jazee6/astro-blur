@@ -12,6 +12,9 @@ interface Props {
 const {title, description, image} = Astro.props
 ---
 <BaseLayout title={title} description={description} image={image}>
+    <Fragment slot="head">
+        <slot name="head"/>
+    </Fragment>
     <main class="mt-20 mb-4">
         <div class="container-global flex items-start">
             <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4">
@@ -25,7 +28,7 @@ const {title, description, image} = Astro.props
                         <div class="flex self-center mt-2 space-x-2">
                             {
                                 socialLinks.map((link) => (
-                                        <a href={link.url} target="_blank">
+                                        <a href={link.url} target="_blank" rel="noopener noreferrer">
                                             <Icon class="w-8 h-8 hover:text-secondary transition-all" name={link.icon}/>
                                         </a>
                                 ))

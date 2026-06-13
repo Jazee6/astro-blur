@@ -9,19 +9,27 @@ interface Props {
     title?: string;
     description?: string;
     image?: string;
+    ogType?: string;
+    pubDate?: Date;
+    lastModified?: string;
 }
 
 const {
     title = `${siteConfig.title} - ${siteConfig.description}`,
     description = siteConfig.description,
-    image = siteConfig.avatar
+    image = siteConfig.avatar,
+    ogType,
+    pubDate,
+    lastModified,
 } = Astro.props
 ---
 
 <!DOCTYPE html>
 <html lang={siteConfig.language}>
 <head>
-    <BaseHead title={title} description={description} image={image}/>
+    <BaseHead title={title} description={description} image={image} ogType={ogType} pubDate={pubDate} lastModified={lastModified}>
+        <slot name="head"/>
+    </BaseHead>
 </head>
 <script is:inline>
     const setTheme = (theme) => {

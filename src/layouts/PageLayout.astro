@@ -7,13 +7,19 @@ interface Props {
     title?: string;
     description?: string;
     image?: string;
+    ogType?: string;
+    pubDate?: Date;
+    lastModified?: string;
 
     comments?: boolean;
 }
 
-const {title, description, image, comments} = Astro.props
+const {title, description, image, ogType, pubDate, lastModified, comments} = Astro.props
 ---
-<BaseLayout title={title} description={description} image={image}>
+<BaseLayout title={title} description={description} image={image} ogType={ogType} pubDate={pubDate} lastModified={lastModified}>
+    <Fragment slot="head">
+        <slot name="head"/>
+    </Fragment>
     <main class="mt-20 mb-4">
         <div class="container-global">
             <slot/>

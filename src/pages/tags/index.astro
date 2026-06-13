@@ -2,14 +2,13 @@
 import MainLayout from "../../layouts/MainLayout.astro";
 import Badge from "../../components/Badge.astro";
 import {getCollection} from 'astro:content';
-import {getAllTags, getTagCounts} from "../../utils/tags";
+import {getAllTags} from "../../utils/tags";
 import {getTitle} from "../../utils";
 
 const posts = await getCollection('posts', ({data}) => {
     return import.meta.env.PROD ? data.isDraft !== true : true
 });
-const tags = getAllTags(posts);
-const counts = getTagCounts(posts);
+const {tags, counts} = getAllTags(posts);
 ---
 
 <MainLayout title={getTitle("Tags")} description="All tags">
