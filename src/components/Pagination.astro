@@ -43,12 +43,12 @@ const getUrl = (page: number) => {
 }
 ---
 <div class:list={[className, 'flex space-x-2']}>
-    <a href={page.url.prev} class:list={["block p-2 rounded-xl bg-base transition-all",
+    <a href={page.url.prev} class:list={["block p-2 rounded-xl bg-base transition-colors duration-150 ease-[ease]",
         page.url.prev ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
         <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
     </a>
 
-    <div class="flex rounded-xl bg-base transition-all font-bold">
+    <div class="flex rounded-xl bg-base font-bold">
         {
             pages.map(p => {
                 if (p === -1) {
@@ -66,7 +66,7 @@ const getUrl = (page: number) => {
                 }
                 return (
                         <a href={getUrl(p)}
-                           class="flex items-center justify-center w-12 rounded-xl transition-all hover:bg-hover active:bg-active">
+                           class="flex items-center justify-center w-12 rounded-xl transition-colors duration-150 ease-[ease] hover:bg-hover active:bg-active">
                             {p}
                         </a>
                 )
@@ -74,7 +74,7 @@ const getUrl = (page: number) => {
         }
     </div>
 
-    <a href={page.url.next} class:list={["block p-2 rounded-xl bg-base transition-all",
+    <a href={page.url.next} class:list={["block p-2 rounded-xl bg-base transition-colors duration-150 ease-[ease]",
         page.url.next ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
         <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
     </a>

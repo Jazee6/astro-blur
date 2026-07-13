@@ -19,11 +19,11 @@
 }
 
 @utility menu-item {
-    @apply cursor-pointer hover:bg-hover transition-all rounded-lg py-1 line-clamp-1 active:bg-active;
+    @apply cursor-pointer hover:bg-hover transition-colors duration-150 ease-[ease] rounded-lg py-1 line-clamp-1 active:bg-active;
 }
 
 @utility base-card {
-    @apply bg-base transition-all rounded-xl p-4;
+    @apply bg-base transition-colors duration-150 ease-[ease] rounded-xl p-4;
 }
 
 @utility article {
@@ -37,15 +37,15 @@
 }
 
 @utility card {
-    @apply bg-base rounded-xl hover:ring-3 ring-primary transition-all;
+    @apply bg-base rounded-xl hover:ring-3 ring-primary;
 }
 
 @utility icon-button {
-    @apply w-8 h-8 hover:bg-hover transition-all rounded-full cursor-pointer;
+    @apply w-8 h-8 hover:bg-hover transition-colors duration-150 ease-[ease] rounded-full cursor-pointer;
 }
 
 @utility badge {
-    @apply bg-back rounded-xl transition-all px-2 py-1 flex items-center font-bold hover:bg-hover;
+    @apply bg-back rounded-xl transition-colors duration-150 ease-[ease] px-2 py-1 flex items-center font-bold hover:bg-hover;
 }
 
 @layer base {
@@ -58,7 +58,7 @@
     }
 
     body {
-        @apply flex flex-col text-primary bg-back transition-all
+        @apply flex flex-col text-primary bg-back transition-colors duration-150 ease-[ease]
     }
 
     .light {
@@ -77,6 +77,25 @@
         --color-secondary: 115 115 115;
         --color-hover: 82 82 82;
         --color-active: 64 64 64;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        .animate-in,
+        .animate-pulse {
+            animation: none !important;
+        }
+
+        .medium-zoom-image {
+            transition: transform 1ms linear !important;
+        }
+
+        .medium-zoom-overlay {
+            transition: opacity 150ms ease !important;
+        }
     }
 }
 

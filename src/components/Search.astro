@@ -1,12 +1,12 @@
 ---
 
 ---
-<div id="search-container" class="fixed hidden inset-0 z-50 backdrop-blur-sm animate-in fade-in">
+<div id="search-container" class="fixed hidden inset-0 z-50 backdrop-blur-sm">
     <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full h-full">
-        <form class="w-3/4 mx-auto max-md:w-full animate-in slide-in-from-top">
+        <form class="w-3/4 mx-auto max-md:w-full">
             <label>
                 <input name="search" autocomplete="off" placeholder="Search..."
-                       class="w-full outline-0 bg-base transition-all rounded-xl h-16 p-4 shadow-xl text-xl"/>
+                       class="w-full outline-0 bg-base rounded-xl h-16 p-4 shadow-xl text-xl"/>
             </label>
         </form>
         <div id="search-results" class="w-3/4 mx-auto max-md:w-full h-full overflow-y-auto rounded-xl mt-1">
@@ -67,7 +67,7 @@
                 for (const result of search.results) {
                     const data = await result.data()
                     html += `
-                    <a href="${data.url}" class="block px-4 py-2 rounded-xl bg-base/80 blur-global animate-in fade-in mt-1 first:mt-0 hover:bg-base transition-all">
+                    <a href="${data.url}" class="block px-4 py-2 rounded-xl bg-base/80 blur-global mt-1 first:mt-0 hover:bg-base transition-colors duration-150 ease-[ease]">
                         <h2 class="text-xl font-bold line-clamp-1">${data.meta.title}</h2>
                         <p class="line-clamp-3">${data.excerpt}</p>
                     </a>
