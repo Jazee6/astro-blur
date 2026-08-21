@@ -2,12 +2,12 @@ import {defineConfig} from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import icon from "astro-icon";
-import {remarkModifiedTime} from "./src/utils/remark-modified-time";
+import {satteri} from '@astrojs/markdown-satteri';
+import {mdastModifiedTime} from "./src/utils/mdast-modified-time";
+import {hastImage} from "./src/utils/hast-image";
 import {siteConfig} from "./src/config";
 
 import tailwindcss from '@tailwindcss/vite';
-import RehypeImage from "./src/utils/rehype-image.tsx";
-import {unified} from '@astrojs/markdown-remark';
 
 // https://astro.build/config
 export default defineConfig({
@@ -20,9 +20,9 @@ export default defineConfig({
                 dark: 'github-dark'
             }
         },
-        processor: unified({
-            remarkPlugins: [remarkModifiedTime],
-            rehypePlugins: [RehypeImage],
+        processor: satteri({
+            mdastPlugins: [mdastModifiedTime],
+            hastPlugins: [hastImage],
         }),
     },
     devToolbar: {

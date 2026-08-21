@@ -19,9 +19,10 @@ import {Icon} from 'astro-icon/components'
                 })
             }
         </nav>
-        <div class="ml-auto hidden max-sm:flex icon-button cursor-pointer relative group">
+        <button id="menu" class="ml-auto hidden max-sm:flex icon-button cursor-pointer relative" aria-label="更多菜单" aria-expanded="false">
             <Icon class="w-6 h-6 m-auto" name="material-symbols:menu-rounded"/>
-            <nav class="absolute top-8 -left-full rounded-xl shadow-xl bg-base hidden group-hover:block animate-in fade-in">
+            <nav id="menu-dropdown"
+                 class="absolute top-8 right-0 rounded-xl shadow-xl bg-base hidden animate-in fade-in">
                 {
                     navBarConfig.links.map((link) => {
                         return (
@@ -36,7 +37,7 @@ import {Icon} from 'astro-icon/components'
                     })
                 }
             </nav>
-        </div>
+        </button>
         <button id="search" class="ml-4 icon-button">
             <Icon class="block w-6 h-6 m-auto" name="material-symbols:search-rounded"/>
         </button>
@@ -45,6 +46,27 @@ import {Icon} from 'astro-icon/components'
 </header>
 
 <script is:inline>
+    const menuButton = document.querySelector("#menu");
+    const menuDropdown = document.querySelector("#menu-dropdown");
+
+    const closeMenu = () => {
+        menuDropdown.classList.add("hidden");
+        menuButton.setAttribute("aria-expanded", "false");
+    };
+
+    menuButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = !menuDropdown.classList.toggle("hidden");
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+    });
+
+    menuDropdown.addEventListener("click", (e) => e.stopPropagation());
+    menuDropdown.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMenu));
+    document.addEventListener("click", closeMenu);
+    document.documentElement.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeMenu();
+    });
+
     const searchButton = document.querySelector("#search");
     searchButton.addEventListener("click", () => {
         const searchContainer = document.querySelector("#search-container")

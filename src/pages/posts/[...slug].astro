@@ -5,6 +5,7 @@ import Badge from "../../components/Badge.astro";
 import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
 import PageLayout from "../../layouts/PageLayout.astro";
+import Toc from "../../components/Toc.astro";
 
 export async function getStaticPaths() {
     const posts = await getCollection('posts', ({data}) => {
@@ -30,20 +31,6 @@ interface Props {
 const {post, prev, next} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
-const haveToc = headings.some(heading => heading.depth <= 3);
-
-type TocGroup = { heading: typeof headings[number], subs: typeof headings };
-const tocGroups: TocGroup[] = [];
-let currentGroup: TocGroup | null = null;
-for (const heading of headings) {
-    if (heading.depth === 2) {
-        currentGroup = {heading, subs: []};
-        tocGroups.push(currentGroup);
-    } else if (heading.depth === 3 && currentGroup) {
-        currentGroup.subs.push(heading);
-    }
-}
-const tocIds = headings.filter(h => h.depth <= 3).map(h => h.slug);
 
 const articleUrl = new URL(`/posts/${post.id}`, Astro.site).href;
 const blogPostingJsonLd = {
@@ -63,81 +50,55 @@ const blogPostingJsonLd = {
 ---
 <PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(blogPostingJsonLd)}/>
-    <div class="flex items-start">
-        {haveToc && (
-            <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-20 mr-4 bg-base transition-colors duration-150 ease-[ease] rounded-xl p-2"
-                   data-headings={JSON.stringify(tocIds)}>
-                <ul>
-                    {tocGroups.map(({heading, subs}) => (
-                        <li>
-                            <a class="px-2 menu-item" href={`#${heading.slug}`}>
-                                {heading.text}
-                            </a>
-                            {subs.length > 0 && (
-                                <ul>
-                                    {subs.map(sub => (
-                                        <li>
-                                            <a class="pl-6 pr-2 menu-item" href={`#${sub.slug}`}>
-                                                {sub.text}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </li>
-                    ))}
-                </ul>
-            </aside>
+    <div class="relative">
+        <Toc headings={headings}/>
+        <div class='flex flex-col gap-4'>
+        <article class="article base-card grow" data-pagefind-body>
+            <h1 id={data.title}>{data.title}</h1>
+
+            <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
+                <Badge icon="material-symbols:edit-calendar-rounded">
+                    {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
+                </Badge>
+                {siteConfig.twikoo_uri &&
+                        <Badge icon="material-symbols:bar-chart-rounded">
+                            <span id="twikoo_visitors">...</span>
+                        </Badge>}
+                {data.tags.map(tag => (
+                        <a href={`/tags/${tag.toLowerCase()}`}>
+                            <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
+                        </a>
+                ))}
+            </div>
+
+            <Content/>
+        </article>
+
+        {(prev || next) && (
+                <nav class="flex gap-4">
+                    {prev ? (
+                                    <a href={`/posts/${prev.id}`}
+                                       class="flex-1 card p-3">
+                                        <p class="text-secondary text-sm mb-1">← 上一篇</p>
+                                        <p class="font-bold truncate">{prev.data.title}</p>
+                                    </a>
+                        ) :
+                            <div class="flex-1"/>}
+                    {next ? (
+                                    <a href={`/posts/${next.id}`}
+                                       class="flex-1 card p-3 text-right">
+                                        <p class="text-secondary text-sm mb-1">下一篇 →</p>
+                                        <p class="font-bold truncate">{next.data.title}</p>
+                                    </a>
+                        ) :
+                            <div class="flex-1"/>}
+                </nav>
         )}
-
-        <div class='flex flex-col gap-4 grow'>
-            <article class="article base-card grow" data-pagefind-body>
-                <h1 id={data.title}>{data.title}</h1>
-
-                <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
-                    <Badge icon="material-symbols:edit-calendar-rounded">
-                        {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
-                    </Badge>
-                    {siteConfig.twikoo_uri &&
-                            <Badge icon="material-symbols:bar-chart-rounded">
-                                <span id="twikoo_visitors">...</span>
-                            </Badge>}
-                    {data.tags.map(tag => (
-                            <a href={`/tags/${tag.toLowerCase()}`}>
-                                <Badge icon="material-symbols:tag-rounded">{tag}</Badge>
-                            </a>
-                    ))}
-                </div>
-
-                <Content/>
-            </article>
-
-            {(prev || next) && (
-                    <nav class="flex gap-4">
-                        {prev ? (
-                                        <a href={`/posts/${prev.id}`}
-                                           class="flex-1 card p-3">
-                                            <p class="text-secondary text-sm mb-1">← 上一篇</p>
-                                            <p class="font-bold truncate">{prev.data.title}</p>
-                                        </a>
-                            ) :
-                                <div class="flex-1"/>}
-                        {next ? (
-                                        <a href={`/posts/${next.id}`}
-                                           class="flex-1 card p-3 text-right">
-                                            <p class="text-secondary text-sm mb-1">下一篇 →</p>
-                                            <p class="font-bold truncate">{next.data.title}</p>
-                                        </a>
-                            ) :
-                                <div class="flex-1"/>}
-                    </nav>
-            )}
         </div>
     </div>
 </PageLayout>
 
 <script>
-    import {debounce} from "../../utils";
     import mediumZoom from 'medium-zoom';
 
     mediumZoom('[data-zoomable]', {
@@ -145,44 +106,11 @@ const blogPostingJsonLd = {
         background: 'rgba(0, 0, 0, 0.85)',
     });
 
-    const aside = document.querySelector<HTMLElement>('[data-headings]');
-    if (aside) {
-        const ids: string[] = JSON.parse(aside.dataset.headings!);
-        const links = document.querySelectorAll<HTMLAnchorElement>('.menu-item');
-        const linkMap = new Map<string, Element>();
-        const targets: { el: Element, link: Element }[] = [];
-
-        for (const link of links) {
-            linkMap.set(link.getAttribute('href')!, link);
-        }
-        for (const id of ids) {
-            const el = document.getElementById(id);
-            const link = linkMap.get(`#${id}`);
-            if (el && link) targets.push({el, link});
-        }
-
-        const update = () => {
-            let active: Element | null = null;
-            for (const {el, link} of targets) {
-                if (el.getBoundingClientRect().top <= 128) {
-                    active = link;
-                }
-            }
-            links.forEach(l => l.classList.remove('bg-hover'));
-            if (active) {
-                active.classList.add('bg-hover');
-                history.replaceState(null, '', active.getAttribute('href'));
-            }
-        };
-
-        const handler = debounce(update);
-        document.addEventListener('scroll', handler);
-
-        const init = () => setTimeout(update, 50);
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    }
+    // 带 hash 到达时，浏览器首次错点定位发生在图片加载前，布局变化后会漂移；
+    // 等 load 后重新对齐一次（scrollIntoView 会应用 prose 标题的 scroll-my-20 偏移）
+    window.addEventListener('load', () => {
+        const hash = decodeURIComponent(location.hash.slice(1));
+        if (!hash) return;
+        document.getElementById(hash)?.scrollIntoView({block: 'start'});
+    });
 </script>
