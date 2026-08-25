@@ -13,14 +13,12 @@ const {headings} = Astro.props;
 const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 ---
 
+<!-- 左侧栏（≥md，由 MainLayout 的 aside 提供定位）：裸列表目录，sticky 跟随滚动，超高时内部滚动 -->
 {items.length > 0 && (
-    <div class="contents" data-toc data-slugs={JSON.stringify(items.map(h => h.slug))}>
-        {/* 宽屏（≥1824px，右侧有足够空白）：贴着文章右缘、随文章一起结束的 sticky 目录 */}
-        <div class="hidden min-[1824px]:block absolute inset-y-0 left-[calc(50%+41rem)] w-64"
-             style="--toc-fade-bg: rgb(var(--color-back));">
-            <nav class="sticky top-20" aria-label="目录">
-                <div class="toc-scroll overflow-y-auto max-h-[calc(100vh-6.5rem)]">
-                    <ul class="toc-list">
+    <nav class="relative base-card" aria-label="目录" data-toc data-slugs={JSON.stringify(items.map(h => h.slug))}
+         style="--toc-fade-bg: rgb(var(--color-back));">
+        <div class="toc-scroll overflow-y-auto max-h-[calc(100vh-6.5rem)]">
+            <ul class="toc-list">
                         <div class="toc-indicator" aria-hidden="true"></div>
                         {items.map(h => (
                             <li class="toc-item" data-slug={h.slug} data-active="false">
@@ -35,13 +33,11 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
                                 </a>
                             </li>
                         ))}
-                    </ul>
-                </div>
-                <div class="toc-fade toc-fade-top" aria-hidden="true"></div>
-                <div class="toc-fade toc-fade-bottom" aria-hidden="true"></div>
-            </nav>
+            </ul>
         </div>
-    </div>
+        <div class="toc-fade toc-fade-top" aria-hidden="true"></div>
+        <div class="toc-fade toc-fade-bottom" aria-hidden="true"></div>
+    </nav>
 )}
 
 <style>

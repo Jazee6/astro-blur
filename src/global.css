@@ -115,6 +115,11 @@
     @apply z-50 rounded-xl
 }
 
+/* 亮色主题：代码块用 back 底色，与白色卡片（base）区分 */
+html:not(.dark) .astro-code {
+    background-color: rgb(var(--color-back)) !important;
+}
+
 html.dark .astro-code,
 html.dark .astro-code span {
     --shiki-dark: unset;

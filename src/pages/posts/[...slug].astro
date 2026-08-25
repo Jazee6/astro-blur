@@ -4,7 +4,8 @@ import {siteConfig} from "../../config";
 import Badge from "../../components/Badge.astro";
 import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
-import PageLayout from "../../layouts/PageLayout.astro";
+import MainLayout from "../../layouts/MainLayout.astro";
+import Comment from "../../components/Comment.astro";
 import Toc from "../../components/Toc.astro";
 
 export async function getStaticPaths() {
@@ -48,11 +49,10 @@ const blogPostingJsonLd = {
     url: articleUrl,
 };
 ---
-<PageLayout comments={true} title={getTitle(data.title)} description={getDesc(data.description)} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
+<MainLayout title={getTitle(data.title)} description={getDesc(data.description)} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(blogPostingJsonLd)}/>
-    <div class="relative">
-        <Toc headings={headings}/>
-        <div class='flex flex-col gap-4'>
+    <Toc slot="aside" headings={headings}/>
+    <div class='flex flex-col gap-4 grow min-w-0'>
         <article class="article base-card grow" data-pagefind-body>
             <h1 id={data.title}>{data.title}</h1>
 
@@ -94,9 +94,10 @@ const blogPostingJsonLd = {
                             <div class="flex-1"/>}
                 </nav>
         )}
-        </div>
+
+        <Comment/>
     </div>
-</PageLayout>
+</MainLayout>
 
 <script>
     import mediumZoom from 'medium-zoom';
