@@ -2,14 +2,18 @@ import {defineCollection,} from 'astro:content';
 import {file, glob} from 'astro/loaders';
 import {z} from 'astro/zod'
 
+const tagSchema = z.string()
+    .trim()
+    .min(1, "标签不能为空")
+    .refine(tag => !tag.includes('/'), "标签不能包含 /")
+
 export const postSchema = z.object({
     title: z.string(),
     description: z.string(),
     pubDate: z.coerce.date(),
-    // heroImage: z.string().optional(),
     isDraft: z.boolean().optional(),
     pinned: z.boolean().optional().default(false),
-    tags: z.array(z.string()).optional().default([]),
+    tags: z.array(tagSchema).optional().default([]),
 })
 
 const posts = defineCollection({

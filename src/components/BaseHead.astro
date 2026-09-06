@@ -45,14 +45,18 @@ const jsonLd = {
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)"/>
 <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)"/>
-<link rel="icon" type="image/png" href={siteConfig.favicon}/>
+<link rel="icon" type="image/svg+xml" href={siteConfig.favicon}/>
+<link rel="manifest" href="/manifest.json"/>
 <meta name="generator" content={Astro.generator}/>
 <link rel="sitemap" href="/sitemap-index.xml"/>
 <link rel="alternate" type="application/rss+xml" title={siteConfig.title} href={`${Astro.site}rss.xml`}/>
 
 <!-- Preconnect for external resources -->
 {siteConfig.twikoo_uri && (
-    <link rel="preconnect" href={new URL(siteConfig.twikoo_uri).origin} crossorigin/>
+    <>
+        <link rel="preconnect" href={new URL(siteConfig.twikoo_uri).origin} crossorigin/>
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+    </>
 )}
 
 <!-- Canonical URL -->

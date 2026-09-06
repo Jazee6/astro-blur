@@ -38,10 +38,10 @@ import {Icon} from 'astro-icon/components'
                 }
             </nav>
         </button>
-        <button id="search" class="ml-4 icon-button">
+        <button id="search" class="ml-4 icon-button" aria-label="搜索">
             <Icon class="block w-6 h-6 m-auto" name="material-symbols:search-rounded"/>
         </button>
-        <button id="theme" class="ml-2 max-sm:ml-4 icon-button"></button>
+        <button id="theme" class="ml-2 max-sm:ml-4 icon-button" aria-label="切换主题"></button>
     </div>
 </header>
 
@@ -49,42 +49,45 @@ import {Icon} from 'astro-icon/components'
     const menuButton = document.querySelector("#menu");
     const menuDropdown = document.querySelector("#menu-dropdown");
 
-    const closeMenu = () => {
-        menuDropdown.classList.add("hidden");
-        menuButton.setAttribute("aria-expanded", "false");
-    };
+    if (menuButton && menuDropdown) {
+        const closeMenu = () => {
+            menuDropdown.classList.add("hidden");
+            menuButton.setAttribute("aria-expanded", "false");
+        };
 
-    menuButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isOpen = !menuDropdown.classList.toggle("hidden");
-        menuButton.setAttribute("aria-expanded", String(isOpen));
-    });
+        menuButton.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = !menuDropdown.classList.toggle("hidden");
+            menuButton.setAttribute("aria-expanded", String(isOpen));
+        });
 
-    menuDropdown.addEventListener("click", (e) => e.stopPropagation());
-    menuDropdown.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMenu));
-    document.addEventListener("click", closeMenu);
-    document.documentElement.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeMenu();
-    });
+        menuDropdown.addEventListener("click", (e) => e.stopPropagation());
+        menuDropdown.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMenu));
+        document.addEventListener("click", closeMenu);
+        document.documentElement.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeMenu();
+        });
+    }
 
     const searchButton = document.querySelector("#search");
-    searchButton.addEventListener("click", () => {
+
+    searchButton?.addEventListener("click", () => {
         const searchContainer = document.querySelector("#search-container")
-        searchContainer.classList.toggle("hidden")
-        searchContainer.querySelector("input").focus()
+        searchContainer?.classList.toggle("hidden")
+        searchContainer?.querySelector("input")?.focus()
     })
 
     document.documentElement.addEventListener("keydown", (e) => {
-        if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+        if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
             const searchContainer = document.querySelector("#search-container")
-            searchContainer.classList.remove("hidden")
+            searchContainer?.classList.remove("hidden")
             setTimeout(() => {
-                searchContainer.querySelector("input").focus()
+                searchContainer?.querySelector("input")?.focus()
             })
         }
         if (e.key === "Escape") {
             const searchContainer = document.querySelector("#search-container")
-            searchContainer.classList.add("hidden")
+            searchContainer?.classList.add("hidden")
         }
     })
 
@@ -92,28 +95,35 @@ import {Icon} from 'astro-icon/components'
     const dark = '<svg class="block w-6 h-6 m-auto" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21q-3.775 0-6.387-2.613T3 12q0-3.45 2.25-5.988T11 3.05q.325-.05.575.088t.4.362t.163.525t-.188.575q-.425.65-.638 1.375T11.1 7.5q0 2.25 1.575 3.825T16.5 12.9q.775 0 1.538-.225t1.362-.625q.275-.175.563-.162t.512.137q.25.125.388.375t.087.6q-.35 3.45-2.937 5.725T12 21m0-2q2.2 0 3.95-1.213t2.55-3.162q-.5.125-1 .2t-1 .075q-3.075 0-5.238-2.163T9.1 7.5q0-.5.075-1t.2-1q-1.95.8-3.163 2.55T5 12q0 2.9 2.05 4.95T12 19m-.25-6.75"/></svg>'
 
     const themeColors = {light: '#f5f5f5', dark: '#171717'}
-    const switchTheme = (theme) => {
-        theme === 'light' ? document.documentElement.classList.replace('dark', 'light') : document.documentElement.classList.replace('light', 'dark')
-        document.querySelectorAll('meta[name="theme-color"]').forEach(el => el.remove())
-        const meta = document.createElement('meta')
-        meta.name = 'theme-color'
-        meta.content = themeColors[theme]
-        document.head.appendChild(meta)
-    }
+
+    // 主题状态经由 DOM class / localStorage 显式传递（BaseLayout 的内联脚本负责首帧初始化），
+    // 这里不依赖任何全局词法变量。
+    const readTheme = () => document.documentElement.classList.contains("dark") ? "dark" : "light"
 
     const themeButton = document.querySelector("#theme");
-    theme === 'light' ? themeButton.innerHTML = light : themeButton.innerHTML = dark
 
-    themeButton.addEventListener("click", () => {
-        if (theme === "light") {
-            switchTheme("dark")
-            themeButton.innerHTML = dark
-            theme = "dark";
-        } else {
-            switchTheme("light")
-            themeButton.innerHTML = light
-            theme = "light";
+    if (themeButton) {
+        const applyTheme = (theme) => {
+            const root = document.documentElement
+            root.classList.remove("light", "dark")
+            root.classList.add(theme)
+            document.querySelectorAll('meta[name="theme-color"]').forEach(el => el.remove())
+            const meta = document.createElement('meta')
+            meta.name = 'theme-color'
+            meta.content = themeColors[theme]
+            document.head.appendChild(meta)
+            themeButton.innerHTML = theme === 'light' ? light : dark
+            try {
+                localStorage.setItem("theme", theme)
+            } catch {
+                // 存储不可用时仍允许切换当前页面的主题
+            }
         }
-        localStorage.setItem("theme", theme);
-    });
+
+        themeButton.innerHTML = readTheme() === 'light' ? light : dark
+
+        themeButton.addEventListener("click", () => {
+            applyTheme(readTheme() === "light" ? "dark" : "light")
+        });
+    }
 </script>

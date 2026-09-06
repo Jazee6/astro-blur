@@ -8,17 +8,18 @@ import {getAllTags, filterPostsByTag} from "../../../utils/tags";
 import {getTitle} from "../../../utils";
 import type {CollectionEntry} from 'astro:content';
 import type {Page} from "astro";
+import type {TagEntry} from "../../../utils/tags";
 
 export async function getStaticPaths({paginate}) {
     const posts = await getCollection('posts', ({data}) => {
         return import.meta.env.PROD ? data.isDraft !== true : true
     });
-    const {tags} = getAllTags(posts);
+    const tags = getAllTags(posts);
     return tags.flatMap(tag => {
-        const tagPosts = filterPostsByTag(posts, tag);
+        const tagPosts = filterPostsByTag(posts, tag.id);
         return paginate(tagPosts, {
             pageSize: siteConfig.page_size,
-            params: {tag},
+            params: {tag: tag.id},
             props: {tag},
         });
     });
@@ -26,16 +27,18 @@ export async function getStaticPaths({paginate}) {
 
 interface Props {
     page: Page<CollectionEntry<'posts'>>
-    tag: string;
+    tag: TagEntry;
 }
 
 const {page, tag} = Astro.props;
+const tagUrl = `/tags/${encodeURIComponent(tag.id)}`;
 ---
 
-<MainLayout title={getTitle(`Tag: ${tag}`)} description={`Posts tagged with "${tag}"`}>
+
+<MainLayout title={getTitle(`Tag: ${tag.label}`)} description={`Posts tagged with "${tag.label}"`}>
     <div class="grow flex flex-col gap-2">
         <div class='flex justify-between items-baseline p-1'>
-            <h1 class="text-2xl font-bold">#{tag}</h1>
+            <h1 class="text-2xl font-bold">#{tag.label}</h1>
             <a href="/tags" class="text-secondary hover:text-primary transition-colors">
                 ← All Tags
             </a>
@@ -50,7 +53,7 @@ const {page, tag} = Astro.props;
         <Pagination
                 class="mt-2 w-fit ml-auto"
                 page={page}
-                getUrl={(p) => p === 1 ? `/tags/${tag}` : `/tags/${tag}/${p}`}
+                getUrl={(p) => p === 1 ? tagUrl : `${tagUrl}/${p}`}
         />
     </div>
 </MainLayout>

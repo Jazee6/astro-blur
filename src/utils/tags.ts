@@ -1,29 +1,44 @@
 import type {CollectionEntry} from 'astro:content';
+import {sortPosts} from "./index";
 
 /**
- * 一次遍历获取所有去重标签及其计数（按数量降序排序）
+ * 标签的规范化身份：大小写不敏感，作为聚合键与 URL 标识。
  */
-export function getAllTags(posts: CollectionEntry<'posts'>[]): { tags: string[], counts: Map<string, number> } {
-    const counts = new Map<string, number>();
-    for (const post of posts) {
+export function normalizeTag(tag: string): string {
+    return tag.trim().toLowerCase();
+}
+
+export interface TagEntry {
+    /** 规范化标识，用作 URL id */
+    id: string;
+    /** 首次出现（按置顶、日期降序的文章顺序）时的原始拼写，仅用于展示 */
+    label: string;
+    count: number;
+}
+
+/**
+ * 获取所有去重标签及其计数（按数量降序排序，同数按 id 排序保证稳定）
+ */
+export function getAllTags(posts: CollectionEntry<'posts'>[]): TagEntry[] {
+    const byId = new Map<string, TagEntry>();
+    for (const post of sortPosts([...posts])) {
         for (const tag of post.data.tags) {
-            const key = tag.toLowerCase();
-            counts.set(key, (counts.get(key) || 0) + 1);
+            const id = normalizeTag(tag);
+            const existing = byId.get(id);
+            if (existing) {
+                existing.count++;
+            } else {
+                byId.set(id, {id, label: tag, count: 1});
+            }
         }
     }
-    const tags = Array.from(counts.keys()).sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
-    return {tags, counts};
+    return Array.from(byId.values()).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
 }
 
 /**
  * 按标签过滤文章（置顶优先，按日期降序）
  */
 export function filterPostsByTag(posts: CollectionEntry<'posts'>[], tag: string): CollectionEntry<'posts'>[] {
-    const normalized = tag.toLowerCase();
-    return posts
-        .filter(post => post.data.tags.some(t => t.toLowerCase() === normalized))
-        .sort((a, b) => {
-            if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1;
-            return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
-        });
+    const id = normalizeTag(tag);
+    return sortPosts(posts.filter(post => post.data.tags.some(t => normalizeTag(t) === id)));
 }

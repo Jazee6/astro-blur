@@ -1,6 +1,6 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import {getDesc, getTitle} from "../utils";
+import {getTitle} from "../utils";
 import {getCollection} from "astro:content";
 import {Icon} from 'astro-icon/components'
 
@@ -9,7 +9,7 @@ const data = projects
     .sort((a, b) => Number(b.id) - Number(a.id))
     .map(({data}) => data);
 ---
-<PageLayout title={getTitle('Projects')} description={getDesc('The Projects Page')}>
+<PageLayout title={getTitle('Projects')} description="Projects">
     <ul data-pagefind-body>
         {data.map(({title, repo, description}) => (
                 <li>

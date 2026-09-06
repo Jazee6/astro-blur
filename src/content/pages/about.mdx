@@ -7,11 +7,13 @@ import {socialLinks} from '../../config'
 <div className="flex self-center mt-2 space-x-2">
     {
         socialLinks.map((link) => (
-            <a href={link.url} target="_blank" rel="noopener noreferrer">
+            <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
                 <Icon class="w-8 h-8 hover:text-secondary transition-colors duration-150 ease-[ease]" name={link.icon}/>
             </a>
         ))
     }
 </div>
 
-本站内容默认采用CC BY-NC 4.0协议，要查看此许可证的副本，请访问 http://creativecommons.org/licenses/by-nc/4.0/
+Astro Blur 是一个静态 Astro 博客主题：文章、页面、友链、项目与站内搜索开箱即用，评论可选。
+
+克隆模板后，先修改 `src/config.ts` 中的站点信息与社交链接，再开始创作你自己的内容。

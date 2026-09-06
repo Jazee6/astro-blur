@@ -36,18 +36,24 @@ const {
         document.documentElement.classList.add(theme);
     }
 
-    let theme = (() => {
-        if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
-            return localStorage.getItem("theme");
-        }
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            return "dark";
-        }
-        return "light";
-    })();
+    let storedTheme = null;
+    try {
+        storedTheme = localStorage.getItem("theme");
+    } catch {
+        // 某些环境（如禁用存储）会抛出 SecurityError，回退到系统偏好，避免首帧闪烁
+    }
 
-    theme === "light" ? setTheme("light") : setTheme("dark");
-    localStorage.setItem("theme", theme);
+    let theme = storedTheme;
+    if (theme !== "light" && theme !== "dark") {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+
+    setTheme(theme);
+    try {
+        localStorage.setItem("theme", theme);
+    } catch {
+        // 忽略存储写入失败
+    }
 </script>
 <body>
 <Search/>

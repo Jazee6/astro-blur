@@ -5,7 +5,9 @@
     "**/*"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.js"
   ],
   "compilerOptions": {
     "strictNullChecks": true,

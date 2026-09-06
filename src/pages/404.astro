@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import {getDesc, getTitle} from "../utils";
+import {getTitle} from "../utils";
 ---
-<BaseLayout title={getTitle('404')} description={getDesc('The 404 Page')}>
+<BaseLayout title={getTitle('404')} description="Page Not Found">
     <meta slot="head" name="robots" content="noindex"/>
     <main class="h-full w-full flex">
         <div class="m-auto text-3xl font-bold">

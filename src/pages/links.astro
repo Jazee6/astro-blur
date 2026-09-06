@@ -1,16 +1,13 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import {getDesc, getTitle} from "../utils";
+import {getTitle} from "../utils";
 import {getCollection} from "astro:content";
 
 const links = await getCollection("links");
+// 保留 links.json 中的声明顺序，不做构建期随机打乱
 const data = links.map(({data}) => data);
-for (let i = data.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [data[i], data[j]] = [data[j], data[i]];
-}
 ---
-<PageLayout comments={true} title={getTitle('Links')} description={getDesc('The Links Page')}>
+<PageLayout comments={true} title={getTitle('Links')} description="Friend links">
     <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
         {data.map(({title, description, url, avatar}) => (
                 <li>

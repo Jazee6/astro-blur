@@ -8,8 +8,9 @@ import {getTitle} from "../../utils";
 const posts = await getCollection('posts', ({data}) => {
     return import.meta.env.PROD ? data.isDraft !== true : true
 });
-const {tags, counts} = getAllTags(posts);
+const tags = getAllTags(posts);
 ---
+
 
 <MainLayout title={getTitle("Tags")} description="All tags">
     <div class="grow flex flex-col gap-2">
@@ -21,9 +22,9 @@ const {tags, counts} = getAllTags(posts);
             ) : (
                     <div class="flex flex-wrap gap-2">
                         {tags.map(tag => (
-                                <a href={`/tags/${tag}`} class="">
+                                <a href={`/tags/${encodeURIComponent(tag.id)}`}>
                                     <Badge icon="material-symbols:tag-rounded">
-                                        {tag} ({counts.get(tag) || 0})
+                                        {tag.label} ({tag.count})
                                     </Badge>
                                 </a>
                         ))}

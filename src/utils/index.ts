@@ -15,10 +15,6 @@ export function getTitle(title: string) {
     return title + ' - ' + siteConfig.title
 }
 
-export function getDesc(desc: string) {
-    return desc
-}
-
 /**
  * 统一排序：置顶优先，再按日期降序
  */

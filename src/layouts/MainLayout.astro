@@ -23,7 +23,7 @@ const {title, description, image, ogType, pubDate, lastModified} = Astro.props
             <aside class="basis-[16rem] shrink-0 max-md:hidden sticky top-18 mr-4">
                 <slot name="aside">
                     <div class="base-card flex flex-col">
-                        <img src={siteConfig.avatar} alt="avatar"
+                        <img src={siteConfig.avatar} alt={siteConfig.author}
                              class="w-56 h-56 rounded-full dark:brightness-75"/>
                         <div class="text-center font-bold text-xl mt-4">
                             {siteConfig.author}

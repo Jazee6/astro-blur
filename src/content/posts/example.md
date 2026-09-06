@@ -131,7 +131,7 @@ https://www.example.com
 
 ### 图片
 
-![示例图片](https://blog-cdn.jaze.top/2026/01/91087b97dbf162f923e7996f53290f83.avif)
+![示例图片](/identity.svg)
 
 ## 表格
 

@@ -43,10 +43,16 @@ const getUrl = (page: number) => {
 }
 ---
 <div class:list={[className, 'flex space-x-2']}>
-    <a href={page.url.prev} class:list={["block p-2 rounded-xl bg-base transition-colors duration-150 ease-[ease]",
-        page.url.prev ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
-        <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
-    </a>
+    {page.url.prev ? (
+            <a href={page.url.prev} aria-label="上一页"
+               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors duration-150 ease-[ease]">
+                <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
+            </a>
+    ) : (
+            <span class="block p-2 rounded-xl bg-base text-secondary" aria-hidden="true">
+                <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
+            </span>
+    )}
 
     <div class="flex rounded-xl bg-base font-bold">
         {
@@ -74,8 +80,14 @@ const getUrl = (page: number) => {
         }
     </div>
 
-    <a href={page.url.next} class:list={["block p-2 rounded-xl bg-base transition-colors duration-150 ease-[ease]",
-        page.url.next ? 'hover:bg-hover cursor-pointer' : 'text-secondary']}>
-        <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
-    </a>
+    {page.url.next ? (
+            <a href={page.url.next} aria-label="下一页"
+               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors duration-150 ease-[ease]">
+                <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
+            </a>
+    ) : (
+            <span class="block p-2 rounded-xl bg-base text-secondary" aria-hidden="true">
+                <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
+            </span>
+    )}
 </div>
