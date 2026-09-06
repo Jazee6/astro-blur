@@ -75,7 +75,7 @@ const blogPostingJsonLd = {
                 <nav class="flex gap-4">
                     {prev ? (
                                     <a href={`/posts/${prev.id}`}
-                                       class="flex-1 card p-3">
+                                       class="flex-1 min-w-0 card p-3">
                                         <p class="text-secondary text-sm mb-1">← 上一篇</p>
                                         <p class="font-bold truncate">{prev.data.title}</p>
                                     </a>
@@ -83,7 +83,7 @@ const blogPostingJsonLd = {
                             <div class="flex-1"/>}
                     {next ? (
                                     <a href={`/posts/${next.id}`}
-                                       class="flex-1 card p-3 text-right">
+                                       class="flex-1 min-w-0 card p-3 text-right">
                                         <p class="text-secondary text-sm mb-1">下一篇 →</p>
                                         <p class="font-bold truncate">{next.data.title}</p>
                                     </a>
