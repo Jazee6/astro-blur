@@ -4,7 +4,7 @@ export const siteConfig: SiteConfig = {
     description: "Jazee's personal blog. Powered by Astro Blog Theme Blur.",
     keywords: "Jazee, blog, personal blog, Astro, Astro Blog Theme Blur",
     author: "Jazee",
-    avatar: "/avatar.png",
+    avatar: "/avatar.avif",
     favicon: "/favicon.png",
     site: "https://jaze.top",
 
