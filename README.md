@@ -11,7 +11,7 @@
 - ✅ 100% 原生组件，纯静态生成
 - ✅ Twikoo 评论系统
 - ✅ SEO友好 — OpenGraph / Sitemap / RSS
-- ✅ 响应式布局 / 代码高亮 / 主题切换
+- ✅ 响应式布局 / 代码高亮 / Mermaid 图表 / 主题切换
 
 ## 快速开始
 
@@ -22,14 +22,14 @@ npx degit Jazee6/astro-blur#main my-blog
 #进入项目
 cd my-blog
 
-#安装依赖
-pnpm i
+#安装依赖（构建 Mermaid 图表需要本机已安装 Microsoft Edge）
+bun install
 
 #启动项目
-pnpm dev
+bun run dev
 
 #新建文章 
-pnpm new
+bun run new
 
 #配置修改
 ./src/config.ts

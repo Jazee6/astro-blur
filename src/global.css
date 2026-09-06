@@ -135,3 +135,23 @@ html.dark .astro-code span {
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
 }
+
+.mermaid-diagram {
+    margin-block: 1.5rem;
+    overflow-x: auto;
+}
+
+.mermaid-diagram__theme {
+    width: max(100%, var(--mermaid-width));
+}
+
+.mermaid-diagram svg {
+    display: block;
+    height: auto;
+    margin-inline: auto;
+}
+
+html:not(.dark) .mermaid-diagram__theme--dark,
+html.dark .mermaid-diagram__theme--light {
+    display: none;
+}

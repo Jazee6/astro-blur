@@ -11,7 +11,7 @@ A static Astro blog theme
 - ✅ 100% native components, pure static generation
 - ✅ Twikoo comment system
 - ✅ SEO friendly — OpenGraph / Sitemap / RSS
-- ✅ Responsive layout / code highlight / theme switch
+- ✅ Responsive layout / code highlight / Mermaid diagrams / theme switch
 
 ## Quick Start
 
@@ -22,14 +22,14 @@ npx degit Jazee6/astro-blur#main my-blog
 # Enter project
 cd my-blog
 
-# Install dependencies
-pnpm i
+# Install dependencies (building Mermaid diagrams requires Microsoft Edge)
+bun install
 
 # Start project
-pnpm dev
+bun run dev
 
 # Create new post
-pnpm new
+bun run new
 
 # Config modify
 ./src/config.ts

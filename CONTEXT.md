@@ -14,3 +14,11 @@ _Avoid_: 当前标题（单独使用时指代不清）、高亮标题（只描�
 **lastModified**:
 一篇内容最后一次被修改的时刻，取自最后一次触及该文件的 git 提交时间。
 _Avoid_: 文件 mtime、更新时间（前者会被 clone/checkout 重置，后者语义含糊）
+
+**Mermaid 源代码块**:
+文章中以 `mermaid` 作为语言标识、用于描述图形的围栏代码块。
+_Avoid_: Mermaid 图（后者指读者看到的图形）
+
+**Mermaid 图**:
+由 Mermaid 源代码块表达、供读者查看的可视化内容。
+_Avoid_: Mermaid 源码、Mermaid 代码块（用于指代最终展示内容时）
