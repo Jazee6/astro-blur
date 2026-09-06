@@ -1,14 +1,26 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import {getEntry, render} from 'astro:content';
+import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
 import {getTitle} from "../utils";
 
-const about = await getEntry('pages', 'about') as CollectionEntry<'pages'>;
-const {data} = about;
-const {Content} = await render(about);
+export async function getStaticPaths() {
+    const pages = await getCollection('pages');
+    return pages.map((page) => ({
+        params: {slug: page.id},
+        props: {page},
+    }));
+}
+
+interface Props {
+    page: CollectionEntry<'pages'>
+}
+
+const {page} = Astro.props;
+const {data} = page;
+const {Content} = await render(page);
 ---
-<PageLayout title={getTitle('About')} description={data.title}>
+<PageLayout title={getTitle(data.title)} description={data.title}>
     <article class="base-card article" data-pagefind-body>
         <h1>{data.title}</h1>
         <Content/>
