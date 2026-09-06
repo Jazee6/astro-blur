@@ -1,12 +1,12 @@
 export const siteConfig: SiteConfig = {
-    title: "Astro Blur",
+    title: "Hi! Jazee",
     language: "zh",
-    description: "A static blog theme built with Astro. Powered by Astro Blog Theme Blur.",
-    keywords: "Astro, blog, theme, Astro Blog Theme Blur",
-    author: "Astro Blur",
-    avatar: "/identity.svg",
-    favicon: "/identity.svg",
-    site: "https://example.com",
+    description: "Jazee's personal blog. Powered by Astro Blog Theme Blur.",
+    keywords: "Jazee, blog, personal blog, Astro, Astro Blog Theme Blur",
+    author: "Jazee",
+    avatar: "/avatar.png",
+    favicon: "/favicon.png",
+    site: "https://jaze.top",
 
     page_size: 10,
 }
@@ -33,7 +33,12 @@ export const socialLinks: SocialLink[] = [
     {
         label: 'GitHub',
         icon: 'mdi-github',
-        url: 'https://github.com/Jazee6/astro-blur'
+        url: 'https://github.com/Jazee6'
+    },
+    {
+        label: 'Email',
+        icon: 'material-symbols:mail-rounded',
+        url: 'mailto:jazee@jaze.top'
     }
 ]
 

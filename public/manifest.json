@@ -1,16 +1,22 @@
 {
-  "name": "Astro Blur",
-  "short_name": "Astro Blur",
+  "name": "Hi! Jazee",
+  "short_name": "Jazee's Blog",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#f5f5f5",
-  "description": "A static blog theme built with Astro",
+  "description": "Jazee's Blog",
   "icons": [
     {
-      "src": "/identity.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/pwa.webp",
+      "sizes": "256x256",
+      "type": "image/webp"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "web",
+      "url": "https://jaze.top"
     }
   ]
 }
