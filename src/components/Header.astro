@@ -13,7 +13,7 @@ import {Icon} from 'astro-icon/components'
             {
                 navBarConfig.links.map((link) => {
                     return (
-                            <a class="ml-8 hover:text-secondary transition-colors duration-150 ease-[ease]" href={link.url}
+                            <a class="ml-8 hover:text-secondary transition-colors" href={link.url}
                                target={link.target} rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}>{link.name}</a>
                     )
                 })
@@ -28,7 +28,7 @@ import {Icon} from 'astro-icon/components'
                 {
                     navBarConfig.links.map((link) => {
                         return (
-                                <a class="flex items-center pl-2 py-2 first:rounded-t-xl last:rounded-b-xl hover:bg-hover transition-colors duration-150 ease-[ease]"
+                                <a class="flex items-center pl-2 py-2 first:rounded-t-xl last:rounded-b-xl hover:bg-hover transition-colors"
                                    href={link.url}
                                    target={link.target}
                                    rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}>

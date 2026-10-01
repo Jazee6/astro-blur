@@ -45,7 +45,7 @@ const getUrl = (page: number) => {
 <div class:list={[className, 'flex gap-2']}>
     {page.url.prev ? (
             <a href={page.url.prev} aria-label="上一页"
-               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors duration-150 ease-[ease]">
+               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors">
                 <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
             </a>
     ) : (
@@ -72,7 +72,7 @@ const getUrl = (page: number) => {
                 }
                 return (
                         <a href={getUrl(p)}
-                           class="flex items-center justify-center w-12 rounded-xl transition-colors duration-150 ease-[ease] hover:bg-hover active:bg-active">
+                           class="flex items-center justify-center w-12 rounded-xl transition-colors hover:bg-hover active:bg-active">
                             {p}
                         </a>
                 )
@@ -82,7 +82,7 @@ const getUrl = (page: number) => {
 
     {page.url.next ? (
             <a href={page.url.next} aria-label="下一页"
-               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors duration-150 ease-[ease]">
+               class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors">
                 <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
             </a>
     ) : (
