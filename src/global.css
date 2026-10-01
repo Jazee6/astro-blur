@@ -47,11 +47,29 @@
 }
 
 @utility card {
-    @apply bg-base rounded-xl hover:ring-3 ring-primary;
+    @apply bg-base rounded-xl hover:ring-3 ring-primary transition-shadow;
 }
 
 @utility icon-button {
     @apply w-8 h-8 hover:bg-hover transition-colors rounded-full cursor-pointer;
+}
+
+/* <details> 展开/收起的高度动画；仅在支持对 auto 插值的浏览器启用，其余照常瞬时开合 */
+@utility collapsible {
+    @supports (interpolate-size: allow-keywords) {
+        interpolate-size: allow-keywords;
+
+        &::details-content {
+            height: 0;
+            overflow-y: clip;
+            transition: height var(--transition-duration-slow) var(--default-transition-timing-function),
+            content-visibility var(--transition-duration-slow) allow-discrete;
+        }
+
+        &[open]::details-content {
+            height: auto;
+        }
+    }
 }
 
 @utility badge {
