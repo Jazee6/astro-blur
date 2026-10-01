@@ -23,7 +23,15 @@ export function getTitle(title: string) {
 }
 
 /**
- * 统一排序：置顶优先，再按日期降序
+ * 文章时间线：按发布日期升序（同日按 id 保证稳定），不受置顶影响
+ */
+export function getTimeline(posts: CollectionEntry<'posts'>[]): CollectionEntry<'posts'>[] {
+    return [...posts].sort((a, b) =>
+        a.data.pubDate.valueOf() - b.data.pubDate.valueOf() || a.id.localeCompare(b.id));
+}
+
+/**
+ * 列表排序：置顶优先，再按日期降序（原地排序并返回）
  */
 export function sortPosts(posts: CollectionEntry<'posts'>[]): CollectionEntry<'posts'>[] {
     return posts.sort((a, b) => {
