@@ -24,6 +24,8 @@ const posts = defineCollection({
 
 export const pageSchema = z.object({
     title: z.string(),
+    description: z.string().optional(),
+    comments: z.boolean().optional().default(false),
 })
 
 const pages = defineCollection({

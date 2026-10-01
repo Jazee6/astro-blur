@@ -3,14 +3,21 @@ import PageLayout from "../layouts/PageLayout.astro";
 import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
 import {getTitle} from "../utils";
+import {getReservedPathConflict} from "../utils/pages";
 import ImageZoom from "../components/ImageZoom.astro";
 
 export async function getStaticPaths() {
     const pages = await getCollection('pages');
-    return pages.map((page) => ({
-        params: {slug: page.id},
-        props: {page},
-    }));
+    return pages.map((page) => {
+        const conflict = getReservedPathConflict(page.id);
+        if (conflict) {
+            throw new Error(`独立页面 ${page.filePath ?? page.id} 的路径无效：${conflict}，请重命名该文件`);
+        }
+        return {
+            params: {slug: page.id},
+            props: {page},
+        };
+    });
 }
 
 interface Props {
@@ -21,7 +28,7 @@ const {page} = Astro.props;
 const {data} = page;
 const {Content} = await render(page);
 ---
-<PageLayout title={getTitle(data.title)} description={data.title}>
+<PageLayout title={getTitle(data.title)} description={data.description ?? data.title} comments={data.comments}>
     <article class="base-card article" data-pagefind-body>
         <h1>{data.title}</h1>
         <Content/>
