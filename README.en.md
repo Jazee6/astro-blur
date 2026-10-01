@@ -60,7 +60,7 @@ Site information, navigation, social links, and pagination size are configured i
 
 ## Comments (Optional)
 
-Comments are disabled by default. Set `twikoo_uri` in `src/config.ts` to your
+Comments are disabled by default. Set `twikooUri` in `src/config.ts` to your
 [Twikoo](https://twikoo.js.org/) deployment URL to enable them. The script is loaded from jsDelivr at the fixed version 1.7.19 with SRI verification.
 
 ## Mermaid Diagrams

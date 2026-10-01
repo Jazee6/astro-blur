@@ -60,7 +60,7 @@ bun run new notes/hello.mdx        # 保留 .md / .mdx 扩展名
 
 ## 评论（可选）
 
-默认不启用评论。在 `src/config.ts` 中设置 `twikoo_uri` 为你的 [Twikoo](https://twikoo.js.org/)
+默认不启用评论。在 `src/config.ts` 中设置 `twikooUri` 为你的 [Twikoo](https://twikoo.js.org/)
 部署地址即可启用：脚本从 jsDelivr 以固定版本 1.7.19 加载（带 SRI 校验）
 
 ## Mermaid 图表
