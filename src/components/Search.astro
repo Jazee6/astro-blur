@@ -1,5 +1,7 @@
-<div id="search-container" class="fixed hidden inset-0 z-50 backdrop-blur-sm">
-    <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full h-full">
+<!-- 开合过渡：hidden 切换时 display 随过渡结束才变化（transition-discrete），打开时从 starting 样式进入 -->
+<div id="search-container"
+     class="fixed hidden inset-0 z-50 backdrop-blur-sm transition-[opacity,display] transition-discrete starting:opacity-0 [&.hidden]:opacity-0">
+    <div class="absolute top-16 left-1/2 -translate-x-1/2 container-global w-full h-full transition-[translate] starting:-translate-y-2 in-[.hidden]:-translate-y-2">
         <form class="w-3/4 mx-auto max-md:w-full" role="search">
             <label>
                 <input name="search" autocomplete="off" placeholder="Search..." aria-label="搜索"

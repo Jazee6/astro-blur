@@ -28,6 +28,7 @@ import {siteConfig} from "../config";
         const markAvailable = () => {
             // 评论渲染后移除骨架占位样式，避免长评论区被固定高度裁剪
             container.classList.remove("h-64", "animate-pulse", "bg-back");
+            container.classList.add("animate-fade-in");
             container.removeAttribute("role");
             container.removeAttribute("aria-label");
         };
