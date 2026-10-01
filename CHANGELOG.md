@@ -4,7 +4,7 @@
 
 ## [2.0.0] - 2026-10-01
 
-全面检查与优化：修复不合法的 HTML 与交互缺陷，精简重复代码，独立页面支持嵌套，主题模式支持跟随系统。
+全面检查与优化：修复不合法的 HTML 与交互缺陷，精简重复代码，独立页面支持嵌套，主题模式支持跟随系统，动效统一为克制的过渡体系。
 
 ### 迁移指南
 
@@ -20,6 +20,10 @@
 - 独立页面支持子目录嵌套；frontmatter 新增可选 `description`（缺省使用标题）与 `comments`（默认 false）。
 - 独立页面路径与保留路径（文章、标签、友链、项目、订阅源、站点地图、首页分页等）重叠时构建失败，不再静默丢弃。
 - Mermaid 渲染依次尝试 Edge、Chrome 与 Playwright 自带的 Chromium，不再强制要求 Edge。
+- 页面切换整页交叉淡化（CSS 跨文档 View Transitions，不支持的浏览器照常跳转）。
+- 主题切换整页交叉淡化；不支持 View Transitions 时一帧内瞬时换色，不再分批变色。
+- 搜索浮层与移动端菜单的打开、关闭均有过渡；移动端目录展开/收起有高度动画（支持 `interpolate-size` 的浏览器）。
+- 卡片悬停 ring 渐显，评论加载完成后淡入。
 
 ### Changed
 
@@ -29,6 +33,8 @@
 - lastModified 插件改为每篇文档只执行一次。
 - 以 Tailwind 主题动画 `animate-fade-in` 替代 `tailwindcss-animate` 插件。
 - 间距统一使用 flex/grid `gap`，不再使用 `space-x/y-*`。
+- 动效统一为两档时长（默认 150ms、`duration-slow` 250ms）与一条缓动曲线，组件不再逐处声明 `duration-150 ease-[ease]`。
+- 减少动态效果（`prefers-reduced-motion`）集中处理：关闭平滑滚动、页面切换与位移/缩放/旋转/尺寸类过渡，保留淡入淡出与颜色渐变。
 
 ### Fixed
 
@@ -43,6 +49,7 @@
 ### Removed
 
 - 移除未使用的 `menu-item` 样式工具类与 `tailwindcss-animate` 依赖。
+- 移除 body、卡片（`base-card`）与页脚上仅用于主题渐变的 `transition-colors`，由整页交叉淡化取代。
 
 ## [1.0.0] - 2026-09-06
 
