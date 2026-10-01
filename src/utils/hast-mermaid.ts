@@ -1,15 +1,45 @@
 import {createHash} from "node:crypto";
 import {fileURLToPath} from "node:url";
-import {createMermaidRenderer, type RenderResult} from "mermaid-isomorphic";
+import {createMermaidRenderer, type MermaidRenderer, type RenderResult} from "mermaid-isomorphic";
+import {chromium, type LaunchOptions} from "playwright";
 import {defineHastPlugin} from "satteri";
 
 const DIAGRAM_INDEX_KEY = "hastMermaidDiagramIndex";
-const renderer = createMermaidRenderer({
-    launchOptions: {
-        channel: "msedge",
-        headless: true,
-    },
-});
+
+/**
+ * 依次尝试本机 Edge、Chrome 与 Playwright 自带的 Chromium，使用第一个能启动的浏览器。
+ */
+const BROWSER_CANDIDATES: {name: string; launchOptions: LaunchOptions}[] = [
+    {name: "Microsoft Edge", launchOptions: {channel: "msedge", headless: true}},
+    {name: "Google Chrome", launchOptions: {channel: "chrome", headless: true}},
+    {name: "Playwright Chromium", launchOptions: {headless: true}},
+];
+
+async function findLaunchOptions(): Promise<LaunchOptions> {
+    const failures: string[] = [];
+    for (const {name, launchOptions} of BROWSER_CANDIDATES) {
+        try {
+            const browser = await chromium.launch(launchOptions);
+            await browser.close();
+            return launchOptions;
+        } catch (error) {
+            failures.push(`${name}: ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`);
+        }
+    }
+    throw new Error([
+        "Mermaid 渲染需要一个 Chromium 内核浏览器：请安装 Microsoft Edge 或 Google Chrome，",
+        "或运行 `bunx playwright install chromium`。",
+        ...failures,
+    ].join("\n"));
+}
+
+// 只在首次遇到 Mermaid 源代码块时探测浏览器，没有图表的站点构建不需要浏览器
+let rendererPromise: Promise<MermaidRenderer> | undefined;
+
+function getRenderer(): Promise<MermaidRenderer> {
+    rendererPromise ??= findLaunchOptions().then(launchOptions => createMermaidRenderer({launchOptions}));
+    return rendererPromise;
+}
 
 const themes = ["default", "dark"] as const;
 type MermaidTheme = (typeof themes)[number];
@@ -43,6 +73,7 @@ function unwrapRenderResult(result: PromiseSettledResult<RenderResult>, theme: M
 }
 
 async function renderTheme(source: string, prefix: string, theme: MermaidTheme): Promise<RenderResult> {
+    const renderer = await getRenderer();
     const [result] = await renderer([source], {
         prefix: `${prefix}-${theme}`,
         mermaidConfig: {

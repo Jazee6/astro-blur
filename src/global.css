@@ -1,9 +1,18 @@
 @import 'tailwindcss';
 
 @plugin '@tailwindcss/typography';
-@plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --animate-fade-in: fade-in 150ms ease-out;
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+}
 
 @theme inline {
     --color-base: rgb(var(--color-base));
@@ -80,7 +89,7 @@
             scroll-behavior: auto;
         }
 
-        .animate-in,
+        .animate-fade-in,
         .animate-pulse {
             animation: none !important;
         }
