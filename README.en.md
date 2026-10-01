@@ -13,13 +13,14 @@ A static blog theme built with Astro: posts, pages, friend links, projects and s
 - ✅ Tags: case-insensitive identities, displaying the spelling of the first occurrence, with a normalized URL id and paginated post lists
 - ✅ Optional Twikoo comments (disabled by default)
 - ✅ SEO friendly — OpenGraph / Sitemap / RSS (summary and original link only) / Web App Manifest
-- ✅ Responsive layout / code highlight / Mermaid diagrams / light-dark theme switch (no flash)
+- ✅ Responsive layout / code highlight / Mermaid diagrams / table of contents (collapsible on small screens)
+- ✅ Theme mode: system / light / dark (no flash; system mode follows OS changes live)
 - ✅ Neutral demo content and local assets, ready to be replaced with your own site
 
 ## Requirements
 
 - [Bun](https://bun.sh) (package management and scripts)
-- Microsoft Edge (required to build Mermaid diagrams, see below)
+- A Chromium-based browser (only needed to build posts containing Mermaid diagrams, see below)
 
 ## Quick Start
 
@@ -58,6 +59,20 @@ bun run new notes/hello.mdx        # Preserves the .md / .mdx extension
 
 Site information, navigation, social links, and pagination size are configured in `src/config.ts`.
 
+## Standalone Pages
+
+Each Markdown/MDX file under `src/content/pages/` becomes a standalone page whose path is its URL; subdirectories are supported (`pages/docs/guide.md` → `/docs/guide`):
+
+```yaml
+---
+title: About
+description: About this site   # optional, defaults to title
+comments: true                 # optional, defaults to false; requires twikooUri
+---
+```
+
+Page paths must not overlap theme-reserved paths (`posts`, `tags`, `links`, `projects`, `rss.xml`, `robots.txt`, `404`, `pagefind`, the sitemap, or numeric homepage pagination paths); the build fails and names the offending file.
+
 ## Comments (Optional)
 
 Comments are disabled by default. Set `twikooUri` in `src/config.ts` to your
@@ -65,7 +80,7 @@ Comments are disabled by default. Set `twikooUri` in `src/config.ts` to your
 
 ## Mermaid Diagrams
 
-Mermaid source blocks in posts are rendered into separate light and dark SVGs at build time and switch with the site theme without client-side scripts. Rendering requires Microsoft Edge installed locally as the browser engine for mermaid-isomorphic. The build fails if Edge is unavailable or a diagram is invalid.
+Mermaid source blocks in posts are rendered into separate light and dark SVGs at build time and switch with the site theme without client-side scripts. Rendering needs a Chromium-based browser: the build tries the locally installed Microsoft Edge, then Google Chrome, then Playwright's bundled Chromium (install it with `bunx playwright install chromium`), and fails with a hint if none can launch. Invalid diagrams also fail the build.
 
 ## Project Structure
 

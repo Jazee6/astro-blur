@@ -13,13 +13,14 @@
 - ✅ 标签：大小写不敏感的聚合身份，展示首次出现的拼写，URL 使用规范化标识，附文章列表分页
 - ✅ 可选 Twikoo 评论（默认关闭）
 - ✅ SEO 友好 — OpenGraph / Sitemap / RSS（仅输出摘要与原文链接）/ Web App Manifest
-- ✅ 响应式布局 / 代码高亮 / Mermaid 图表 / 明暗主题切换（无闪烁）
+- ✅ 响应式布局 / 代码高亮 / Mermaid 图表 / 文章目录（小屏折叠显示）
+- ✅ 主题模式：跟随系统 / 浅色 / 深色（无闪烁，跟随系统时实时响应系统配色）
 - ✅ 中性演示内容与本地资源，开箱即可替换成你自己的站点
 
 ## 环境要求
 
 - [Bun](https://bun.sh)（包管理与脚本运行）
-- Microsoft Edge（构建 Mermaid 图表需要，见下方说明）
+- Chromium 内核浏览器（仅当文章包含 Mermaid 图表时构建需要，见下方说明）
 
 ## 快速开始
 
@@ -58,6 +59,22 @@ bun run new notes/hello.mdx        # 保留 .md / .mdx 扩展名
 
 站点信息、导航、社交链接与分页大小集中在 `src/config.ts`：
 
+## 独立页面
+
+`src/content/pages/` 下的每个 Markdown/MDX 文件生成一个独立页面，路径即 URL，支持子目录
+（如 `pages/docs/guide.md` → `/docs/guide`）：
+
+```yaml
+---
+title: About
+description: 关于本站   # 可选，缺省使用 title
+comments: true         # 可选，默认 false；需同时配置 twikooUri
+---
+```
+
+页面路径不能与主题保留路径重叠（`posts`、`tags`、`links`、`projects`、`rss.xml`、`robots.txt`、
+`404`、`pagefind`、站点地图以及纯数字的首页分页路径），重叠时构建失败并指出对应文件。
+
 ## 评论（可选）
 
 默认不启用评论。在 `src/config.ts` 中设置 `twikooUri` 为你的 [Twikoo](https://twikoo.js.org/)
@@ -66,8 +83,9 @@ bun run new notes/hello.mdx        # 保留 .md / .mdx 扩展名
 ## Mermaid 图表
 
 文章中的 Mermaid 源代码块会在构建期渲染为亮色与暗色两份 SVG，随站点主题即时切换，
-无需客户端脚本。渲染依赖本机安装的 Microsoft Edge（mermaid-isomorphic 的浏览器内核），
-未安装会导致构建失败。无效的图表同样会阻止构建。
+无需客户端脚本。渲染需要一个 Chromium 内核浏览器，构建时依次尝试本机的 Microsoft Edge、Google Chrome
+与 Playwright 自带的 Chromium（可通过 `bunx playwright install chromium` 安装）；都不可用时构建失败并给出提示。
+无效的图表同样会阻止构建。
 
 ## 目录结构
 
