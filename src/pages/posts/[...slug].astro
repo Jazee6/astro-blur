@@ -9,6 +9,7 @@ import type {CollectionEntry} from 'astro:content';
 import MainLayout from "../../layouts/MainLayout.astro";
 import Comment from "../../components/Comment.astro";
 import Toc from "../../components/Toc.astro";
+import MobileToc from "../../components/MobileToc.astro";
 import ImageZoom from "../../components/ImageZoom.astro";
 
 export async function getStaticPaths() {
@@ -67,6 +68,8 @@ const blogPostingJsonLd = {
                         </a>
                 ))}
             </div>
+
+            <MobileToc headings={headings}/>
 
             <Content/>
         </article>

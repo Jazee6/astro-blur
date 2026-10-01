@@ -18,6 +18,13 @@ export function serializeJsonLd(data: unknown): string {
     return JSON.stringify(data).replace(/</g, '\\u003c')
 }
 
+/**
+ * 目录只收录 h2（顶层）与 h3（子级）
+ */
+export function getTocHeadings<T extends {depth: number}>(headings: T[]): T[] {
+    return headings.filter(h => h.depth === 2 || h.depth === 3);
+}
+
 export function getTitle(title: string) {
     return title + ' - ' + siteConfig.title
 }
