@@ -16,7 +16,7 @@ const items = getTocHeadings(Astro.props.headings);
         <summary class="flex items-center gap-2 px-4 py-2 font-bold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
             <Icon class="w-6 h-6" name="material-symbols:toc-rounded"/>
             目录
-            <Icon class="w-6 h-6 ml-auto transition-transform duration-150 ease-[ease] group-open:rotate-90"
+            <Icon class="w-6 h-6 ml-auto transition-transform group-open:rotate-90"
                   name="material-symbols:chevron-right-rounded"/>
         </summary>
         <nav aria-label="目录">
@@ -24,7 +24,7 @@ const items = getTocHeadings(Astro.props.headings);
                 {items.map(h => (
                     <li>
                         <a class:list={[
-                            'block py-1 pr-4 line-clamp-1 text-secondary hover:text-primary transition-colors duration-150 ease-[ease]',
+                            'block py-1 pr-4 line-clamp-1 text-secondary hover:text-primary transition-colors',
                             h.depth === 3 ? 'pl-12' : 'pl-8',
                         ]}
                            href={`#${h.slug}`}>

@@ -20,7 +20,7 @@ const items = getTocHeadings(Astro.props.headings);
                         <li class="toc-item" data-slug={h.slug} data-active="false">
                             <a
                                     class:list={[
-                                        'toc-link block py-1 pr-2 text-sm leading-6 line-clamp-1 text-secondary hover:text-primary transition-colors duration-150 ease-[ease]',
+                                        'toc-link block py-1 pr-2 text-sm leading-6 line-clamp-1 text-secondary hover:text-primary transition-colors',
                                         h.depth === 3 ? 'pl-8' : 'pl-4',
                                     ]}
                                     href={`#${h.slug}`}
@@ -72,7 +72,8 @@ const items = getTocHeadings(Astro.props.headings);
     }
 
     .toc-track[data-ready] .toc-indicator {
-        transition: top 200ms ease, height 200ms ease;
+        transition: top var(--transition-duration-slow) var(--default-transition-timing-function),
+        height var(--transition-duration-slow) var(--default-transition-timing-function);
     }
 
     .toc-item[data-active='true'] a {
@@ -96,7 +97,7 @@ const items = getTocHeadings(Astro.props.headings);
         height: 1.25rem;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 150ms ease;
+        transition: opacity var(--default-transition-duration) var(--default-transition-timing-function);
     }
 
     .toc-fade-top {
@@ -112,13 +113,6 @@ const items = getTocHeadings(Astro.props.headings);
     [data-fade-top='true'] .toc-fade-top,
     [data-fade-bottom='true'] .toc-fade-bottom {
         opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .toc-track[data-ready] .toc-indicator,
-        .toc-fade {
-            transition: none;
-        }
     }
 </style>
 

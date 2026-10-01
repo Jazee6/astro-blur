@@ -4,8 +4,13 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-    --animate-fade-in: fade-in 150ms ease-out;
+/* 动效：两档时长（快 150ms / 常规 250ms）+ 一条缓动曲线。static 保证组件内的原生 CSS
+   与 View Transitions 伪元素引用这些变量时，即使没有对应工具类也会输出 */
+@theme static {
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-duration-slow: 250ms;
+    --animate-fade-in: fade-in var(--transition-duration-slow) var(--default-transition-timing-function);
 
     @keyframes fade-in {
         from {
@@ -28,7 +33,7 @@
 }
 
 @utility base-card {
-    @apply bg-base transition-colors duration-150 ease-[ease] rounded-xl p-4;
+    @apply bg-base transition-colors rounded-xl p-4;
 }
 
 @utility article {
@@ -46,11 +51,11 @@
 }
 
 @utility icon-button {
-    @apply w-8 h-8 hover:bg-hover transition-colors duration-150 ease-[ease] rounded-full cursor-pointer;
+    @apply w-8 h-8 hover:bg-hover transition-colors rounded-full cursor-pointer;
 }
 
 @utility badge {
-    @apply bg-back rounded-xl transition-colors duration-150 ease-[ease] px-2 py-1 flex items-center font-bold hover:bg-hover;
+    @apply bg-back rounded-xl transition-colors px-2 py-1 flex items-center font-bold hover:bg-hover;
 }
 
 @layer base {
@@ -63,7 +68,7 @@
     }
 
     body {
-        @apply flex flex-col text-primary bg-back transition-colors duration-150 ease-[ease]
+        @apply flex flex-col text-primary bg-back transition-colors
     }
 
     .light {
@@ -84,22 +89,24 @@
         --color-active: 64 64 64;
     }
 
+    /* 减少动态效果：关闭平滑滚动、页面切换与所有位移/缩放/旋转/尺寸类过渡，
+       只保留淡入淡出与颜色渐变（不引起前庭不适）。集中在此处统一处理 */
     @media (prefers-reduced-motion: reduce) {
         html {
             scroll-behavior: auto;
         }
 
-        .animate-fade-in,
-        .animate-pulse {
-            animation: none !important;
+        *,
+        *::before,
+        *::after,
+        ::details-content {
+            transition-property: opacity, color, background-color, border-color, outline-color,
+            text-decoration-color, fill, stroke, box-shadow, display, overlay !important;
         }
 
+        /* medium-zoom 依赖 transitionend 结束缩放，保留 1ms 的过渡而不是直接取消 */
         .medium-zoom-image {
             transition: transform 1ms linear !important;
-        }
-
-        .medium-zoom-overlay {
-            transition: opacity 150ms ease !important;
         }
     }
 }

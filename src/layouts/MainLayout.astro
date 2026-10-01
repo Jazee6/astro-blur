@@ -24,7 +24,7 @@ type Props = ComponentProps<typeof BaseLayout>
                             {
                                 socialLinks.map((link) => (
                                         <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
-                                            <Icon class="w-8 h-8 hover:text-secondary transition-colors duration-150 ease-[ease]" name={link.icon}/>
+                                            <Icon class="w-8 h-8 hover:text-secondary transition-colors" name={link.icon}/>
                                         </a>
                                 ))
                             }
