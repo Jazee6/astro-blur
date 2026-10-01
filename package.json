@@ -35,8 +35,7 @@
     "pagefind": "^1.5.2",
     "playwright": "^1.63.0",
     "satteri": "^0.10.5",
-    "tailwindcss": "^4.3.3",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
