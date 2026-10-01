@@ -15,6 +15,7 @@ A static blog theme built with Astro: posts, pages, friend links, projects and s
 - ✅ SEO friendly — OpenGraph / Sitemap / RSS (summary and original link only) / Web App Manifest
 - ✅ Responsive layout / code highlight / Mermaid diagrams / table of contents (collapsible on small screens)
 - ✅ Theme mode: system / light / dark (no flash; system mode follows OS changes live)
+- ✅ Restrained motion: cross-fade on page and theme changes, open/close transitions for popovers (progressive enhancement; respects reduced-motion)
 - ✅ Neutral demo content and local assets, ready to be replaced with your own site
 
 ## Requirements
