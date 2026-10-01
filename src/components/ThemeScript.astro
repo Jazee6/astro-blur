@@ -22,6 +22,10 @@ const themeColors = {light: '#f5f5f5', dark: '#171717'};
         return "system";
     };
 
+    // 读者当前选择的模式。View Transitions 的更新回调在下一帧才执行，因此用同步变量而不是
+    // data-theme-mode 判断下一步，避免快速连点或点击后系统配色立即变化时读到旧值
+    let currentMode = readMode();
+
     const apply = (mode) => {
         const theme = mode === "system" ? (systemDark.matches ? "dark" : "light") : mode;
         root.classList.remove("light", "dark");
@@ -42,18 +46,44 @@ const themeColors = {light: '#f5f5f5', dark: '#171717'};
         }
     };
 
-    apply(readMode());
+    // 运行中切换主题：整页交叉淡化（View Transitions），不支持时瞬时切换。两种路径下都在换色的
+    // 那一帧禁用元素自身的过渡（data-theme-switching），避免颜色分批到位。首帧初始化不经过这里。
+    let switchId = 0;
+    const switchTo = (mode) => {
+        const id = ++switchId;
+        currentMode = mode;
+        const update = () => {
+            root.dataset.themeSwitching = "";
+            apply(mode);
+        };
+        // 只有最后一次切换负责移除标记，连续点击时不会提前恢复过渡
+        const done = () => requestAnimationFrame(() => {
+            if (id === switchId) delete root.dataset.themeSwitching;
+        });
+
+        if (typeof document.startViewTransition === "function") {
+            const transition = document.startViewTransition(update);
+            // 连续切换时旧过渡会被跳过，ready 以 AbortError 拒绝；这是预期行为，不当作错误
+            transition.ready.catch(() => {});
+            transition.finished.finally(done);
+        } else {
+            update();
+            done();
+        }
+    };
+
+    apply(currentMode);
 
     systemDark.addEventListener("change", () => {
-        if (root.dataset.themeMode === "system") apply("system");
+        if (currentMode === "system") switchTo("system");
     });
 
-    document.addEventListener("DOMContentLoaded", () => apply(root.dataset.themeMode));
+    document.addEventListener("DOMContentLoaded", () => apply(currentMode));
 
     document.addEventListener("click", (e) => {
         if (!(e.target instanceof Element) || !e.target.closest("#theme")) return;
-        const mode = modes[(modes.indexOf(root.dataset.themeMode) + 1) % modes.length];
-        apply(mode);
+        const mode = modes[(modes.indexOf(currentMode) + 1) % modes.length];
+        switchTo(mode);
         try {
             localStorage.setItem("theme", mode);
         } catch {
