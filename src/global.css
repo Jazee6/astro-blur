@@ -123,10 +123,14 @@
 
         *,
         *::before,
-        *::after,
-        ::details-content {
+        *::after {
             transition-property: opacity, color, background-color, border-color, outline-color,
             text-decoration-color, fill, stroke, box-shadow, display, overlay !important;
+        }
+
+        /* 单独成规则：不认识 ::details-content 的浏览器只丢弃这一条，不影响上面的规则 */
+        ::details-content {
+            transition-property: opacity !important;
         }
 
         /* medium-zoom 依赖 transitionend 结束缩放，保留 1ms 的过渡而不是直接取消 */

@@ -68,6 +68,8 @@ const themeColors = {light: '#f5f5f5', dark: '#171717'};
             transition.finished.finally(done);
         } else {
             update();
+            // 先强制按标记存在时的样式计算一次，否则 rAF 移除标记早于样式重算，过渡仍会触发
+            void document.body?.offsetHeight;
             done();
         }
     };
