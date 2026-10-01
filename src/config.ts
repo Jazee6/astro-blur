@@ -8,7 +8,7 @@ export const siteConfig: SiteConfig = {
     favicon: "/identity.svg",
     site: "https://example.com",
 
-    page_size: 10,
+    pageSize: 10,
 }
 
 export const navBarConfig: NavBarConfig = {
@@ -47,8 +47,8 @@ interface SiteConfig {
     favicon: string
     site: string
 
-    page_size: number
-    twikoo_uri?: string     // https://twikoo.js.org/
+    pageSize: number
+    twikooUri?: string     // https://twikoo.js.org/
 }
 
 interface NavBarConfig {

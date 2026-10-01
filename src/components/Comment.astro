@@ -2,15 +2,15 @@
 import {siteConfig} from "../config";
 ---
 
-{siteConfig.twikoo_uri && (
+{siteConfig.twikooUri && (
     <div class="bg-base rounded-xl px-6 pt-2 pb-4 mt-4">
-        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2" role="status" aria-label="评论加载中" data-twikoo-uri={siteConfig.twikoo_uri}></div>
+        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2" role="status" aria-label="评论加载中" data-twikoo-uri={siteConfig.twikooUri}></div>
     </div>
 )}
 
 <script>
     // 官方 UMD 集成：从 jsDelivr 固定版本加载，带 SRI 与 crossorigin；
-    // 仅在配置了 twikoo_uri（即页面渲染了 #comment）时才加载脚本。
+    // 仅在配置了 twikooUri（即页面渲染了 #comment）时才加载脚本。
     const TWIKOO_SRC = "https://cdn.jsdelivr.net/npm/twikoo@1.7.19/dist/twikoo.all.min.js";
     const TWIKOO_INTEGRITY = "sha384-7t5myh0NkFeyySL48FLh7/CLgbIezGw08uJ8be7tbH7Ko9ZOMVW5oCy+0xviw0j/";
 
