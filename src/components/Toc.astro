@@ -1,21 +1,17 @@
 ---
-interface Heading {
-    depth: number;
-    slug: string;
-    text: string;
-}
+import type {MarkdownHeading} from "astro";
+import {getTocHeadings} from "../utils";
 
 interface Props {
-    headings: Heading[];
+    headings: MarkdownHeading[];
 }
 
-const {headings} = Astro.props;
-const items = headings.filter(h => h.depth === 2 || h.depth === 3);
+const items = getTocHeadings(Astro.props.headings);
 ---
 
 <!-- 左侧栏（≥md，由 MainLayout 的 aside 提供定位）：裸列表目录，sticky 跟随滚动，超高时内部滚动 -->
 {items.length > 0 && (
-    <nav class="relative base-card" aria-label="目录" data-toc style="--toc-fade-bg: rgb(var(--color-back));">
+    <nav class="relative base-card" aria-label="目录" data-toc style="--toc-fade-bg: rgb(var(--color-base));">
         <div class="toc-scroll overflow-y-auto max-h-[calc(100vh-6.5rem)]">
             <div class="toc-track">
                 <div class="toc-indicator" aria-hidden="true"></div>

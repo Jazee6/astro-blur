@@ -1,0 +1,38 @@
+---
+import type {MarkdownHeading} from "astro";
+import {Icon} from "astro-icon/components";
+import {getTocHeadings} from "../utils";
+
+interface Props {
+    headings: MarkdownHeading[];
+}
+
+const items = getTocHeadings(Astro.props.headings);
+---
+
+<!-- 小屏（<md）没有侧栏目录：在正文顶部提供默认收起的目录，不进入搜索索引 -->
+{items.length > 0 && (
+    <details class="group md:hidden not-prose mt-4 rounded-xl bg-back" data-pagefind-ignore>
+        <summary class="flex items-center gap-2 px-4 py-2 font-bold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <Icon class="w-6 h-6" name="material-symbols:toc-rounded"/>
+            目录
+            <Icon class="w-6 h-6 ml-auto transition-transform duration-150 ease-[ease] group-open:rotate-90"
+                  name="material-symbols:chevron-right-rounded"/>
+        </summary>
+        <nav aria-label="目录">
+            <ul class="flex flex-col pb-2">
+                {items.map(h => (
+                    <li>
+                        <a class:list={[
+                            'block py-1 pr-4 line-clamp-1 text-secondary hover:text-primary transition-colors duration-150 ease-[ease]',
+                            h.depth === 3 ? 'pl-12' : 'pl-8',
+                        ]}
+                           href={`#${h.slug}`}>
+                            {h.text}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </nav>
+    </details>
+)}
