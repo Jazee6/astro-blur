@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import {siteConfig} from "../config";
 import Search from "../components/Search.astro";
+import ThemeScript from "../components/ThemeScript.astro";
 
 interface Props {
     title?: string;
@@ -30,31 +31,8 @@ const {
     <BaseHead title={title} description={description} image={image} ogType={ogType} pubDate={pubDate} lastModified={lastModified}>
         <slot name="head"/>
     </BaseHead>
+    <ThemeScript/>
 </head>
-<script is:inline>
-    const setTheme = (theme) => {
-        document.documentElement.classList.add(theme);
-    }
-
-    let storedTheme = null;
-    try {
-        storedTheme = localStorage.getItem("theme");
-    } catch {
-        // 某些环境（如禁用存储）会抛出 SecurityError，回退到系统偏好，避免首帧闪烁
-    }
-
-    let theme = storedTheme;
-    if (theme !== "light" && theme !== "dark") {
-        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    }
-
-    setTheme(theme);
-    try {
-        localStorage.setItem("theme", theme);
-    } catch {
-        // 忽略存储写入失败
-    }
-</script>
 <body>
 <Search/>
 <Header/>
