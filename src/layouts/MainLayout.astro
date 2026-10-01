@@ -28,10 +28,10 @@ const {title, description, image, ogType, pubDate, lastModified} = Astro.props
                         <div class="text-center font-bold text-xl mt-4">
                             {siteConfig.author}
                         </div>
-                        <div class="flex self-center mt-2 space-x-2">
+                        <div class="flex self-center mt-2 gap-2">
                             {
                                 socialLinks.map((link) => (
-                                        <a href={link.url} target="_blank" rel="noopener noreferrer">
+                                        <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
                                             <Icon class="w-8 h-8 hover:text-secondary transition-colors duration-150 ease-[ease]" name={link.icon}/>
                                         </a>
                                 ))

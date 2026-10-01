@@ -11,6 +11,13 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(fn
     };
 }
 
+/**
+ * 序列化 JSON-LD；转义 `<`，避免标题等内容中的 `</script>` 提前结束脚本标签
+ */
+export function serializeJsonLd(data: unknown): string {
+    return JSON.stringify(data).replace(/</g, '\\u003c')
+}
+
 export function getTitle(title: string) {
     return title + ' - ' + siteConfig.title
 }

@@ -1,5 +1,5 @@
 ---
-import {getTitle, sortPosts} from "../../utils";
+import {getTitle, serializeJsonLd, sortPosts} from "../../utils";
 import {normalizeTag} from "../../utils/tags";
 import {siteConfig} from "../../config";
 import Badge from "../../components/Badge.astro";
@@ -51,13 +51,13 @@ const blogPostingJsonLd = {
 };
 ---
 <MainLayout title={getTitle(data.title)} description={data.description} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
-    <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(blogPostingJsonLd)}/>
+    <script is:inline slot="head" type="application/ld+json" set:html={serializeJsonLd(blogPostingJsonLd)}/>
     <Toc slot="aside" headings={headings}/>
     <div class='flex flex-col gap-4 grow min-w-0'>
         <article class="article base-card grow" data-pagefind-body>
             <h1>{data.title}</h1>
 
-            <div class="flex space-x-2 not-prose flex-wrap gap-y-2">
+            <div class="flex gap-2 not-prose flex-wrap">
                 <Badge icon="material-symbols:edit-calendar-rounded">
                     {new Date(remarkPluginFrontmatter.lastModified).toLocaleDateString(siteConfig.language)}
                 </Badge>

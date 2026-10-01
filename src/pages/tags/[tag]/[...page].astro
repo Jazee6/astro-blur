@@ -44,7 +44,7 @@ const tagUrl = `/tags/${encodeURIComponent(tag.id)}`;
             </a>
         </div>
 
-        <ul class="space-y-4">
+        <ul class="flex flex-col gap-4">
             {page.data.map(post => (
                     <PostCard post={post}/>
             ))}
