@@ -1,0 +1,63 @@
+---
+// 主题模式：light / dark / system（缺省）。只有读者手动切换后才写入 localStorage；
+// system 模式下实时跟随系统配色变化。必须放在 <head> 中，首帧前完成初始化避免闪烁。
+const themeColors = {light: '#f5f5f5', dark: '#171717'};
+---
+<meta name="theme-color" content={themeColors.light} media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content={themeColors.dark} media="(prefers-color-scheme: dark)"/>
+
+<script is:inline define:vars={{themeColors}}>
+    const modes = ["system", "light", "dark"];
+    const labels = {system: "跟随系统", light: "浅色", dark: "深色"};
+    const root = document.documentElement;
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const readMode = () => {
+        try {
+            const stored = localStorage.getItem("theme");
+            if (modes.includes(stored)) return stored;
+        } catch {
+            // 禁用存储时（SecurityError）回退为跟随系统
+        }
+        return "system";
+    };
+
+    const apply = (mode) => {
+        const theme = mode === "system" ? (systemDark.matches ? "dark" : "light") : mode;
+        root.classList.remove("light", "dark");
+        root.classList.add(theme);
+        root.dataset.themeMode = mode;
+
+        // 跟随系统时保留 media 区分；手动模式下两条 theme-color 都指向所选配色
+        const [lightMeta, darkMeta] = document.querySelectorAll('meta[name="theme-color"]');
+        if (lightMeta && darkMeta) {
+            lightMeta.content = mode === "system" ? themeColors.light : themeColors[theme];
+            darkMeta.content = mode === "system" ? themeColors.dark : themeColors[theme];
+        }
+
+        const button = document.getElementById("theme");
+        if (button) {
+            const nextMode = modes[(modes.indexOf(mode) + 1) % modes.length];
+            button.setAttribute("aria-label", `主题：${labels[mode]}，点击切换为${labels[nextMode]}`);
+        }
+    };
+
+    apply(readMode());
+
+    systemDark.addEventListener("change", () => {
+        if (root.dataset.themeMode === "system") apply("system");
+    });
+
+    document.addEventListener("DOMContentLoaded", () => apply(root.dataset.themeMode));
+
+    document.addEventListener("click", (e) => {
+        if (!(e.target instanceof Element) || !e.target.closest("#theme")) return;
+        const mode = modes[(modes.indexOf(root.dataset.themeMode) + 1) % modes.length];
+        apply(mode);
+        try {
+            localStorage.setItem("theme", mode);
+        } catch {
+            // 存储不可用时仍允许切换当前页面的主题
+        }
+    });
+</script>
