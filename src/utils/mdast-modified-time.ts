@@ -1,8 +1,8 @@
-import {execFileSync} from "child_process";
+import {execFileSync} from "node:child_process";
 import {fileURLToPath} from "node:url";
 import {defineMdastPlugin} from "satteri";
 
-const cache = new Map();
+const cache = new Map<string, string>();
 
 /**
  * Sets `lastModified` in the Astro frontmatter to the time of the last
@@ -11,11 +11,11 @@ const cache = new Map();
  */
 export const mdastModifiedTime = defineMdastPlugin({
     name: "mdast-modified-time",
-    text(_node, context) {
+    before(_root, context) {
         if (!context.fileURL || !context.data.astro) return;
         const filepath = fileURLToPath(context.fileURL);
         if (cache.has(filepath)) {
-            context.data.astro.frontmatter.lastModified = cache.get(filepath);
+            context.data.astro.frontmatter.lastModified = cache.get(filepath)!;
             return;
         }
         let value = new Date().toISOString();

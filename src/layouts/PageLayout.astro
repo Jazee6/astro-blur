@@ -1,22 +1,15 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
-import {siteConfig} from "../config";
 import Comment from "../components/Comment.astro";
+import type {ComponentProps} from "astro/types";
 
-interface Props {
-    title?: string;
-    description?: string;
-    image?: string;
-    ogType?: string;
-    pubDate?: Date;
-    lastModified?: string;
-
+type Props = ComponentProps<typeof BaseLayout> & {
     comments?: boolean;
 }
 
-const {title, description, image, ogType, pubDate, lastModified, comments} = Astro.props
+const {comments, ...baseProps} = Astro.props
 ---
-<BaseLayout title={title} description={description} image={image} ogType={ogType} pubDate={pubDate} lastModified={lastModified}>
+<BaseLayout {...baseProps}>
     <Fragment slot="head">
         <slot name="head"/>
     </Fragment>
@@ -24,10 +17,7 @@ const {title, description, image, ogType, pubDate, lastModified, comments} = Ast
         <div class="container-global">
             <slot/>
 
-            {
-                comments && siteConfig.twikoo_uri &&
-                    <Comment/>
-            }
+            {comments && <Comment/>}
         </div>
     </main>
 </BaseLayout>

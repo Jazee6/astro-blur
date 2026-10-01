@@ -2,19 +2,11 @@
 import {siteConfig, socialLinks} from "../config";
 import {Icon} from 'astro-icon/components'
 import BaseLayout from "./BaseLayout.astro";
+import type {ComponentProps} from "astro/types";
 
-interface Props {
-    title?: string;
-    description?: string;
-    image?: string;
-    ogType?: string;
-    pubDate?: Date;
-    lastModified?: string;
-}
-
-const {title, description, image, ogType, pubDate, lastModified} = Astro.props
+type Props = ComponentProps<typeof BaseLayout>
 ---
-<BaseLayout title={title} description={description} image={image} ogType={ogType} pubDate={pubDate} lastModified={lastModified}>
+<BaseLayout {...Astro.props}>
     <Fragment slot="head">
         <slot name="head"/>
     </Fragment>
