@@ -1,5 +1,5 @@
 ---
-import {getTitle, serializeJsonLd} from "../../utils";
+import {getTimeline, getTitle, serializeJsonLd} from "../../utils";
 import {getPublishedPosts} from "../../utils/posts";
 import {normalizeTag} from "../../utils/tags";
 import {siteConfig} from "../../config";
@@ -12,13 +12,14 @@ import Toc from "../../components/Toc.astro";
 import ImageZoom from "../../components/ImageZoom.astro";
 
 export async function getStaticPaths() {
-    const posts = await getPublishedPosts();
-    return posts.map((post, index) => ({
+    // 沿文章时间线导航：上一篇为更早发布，下一篇为更晚发布
+    const timeline = getTimeline(await getPublishedPosts());
+    return timeline.map((post, index) => ({
         params: {slug: post.id},
         props: {
             post,
-            prev: index > 0 ? posts[index - 1] : null,
-            next: index < posts.length - 1 ? posts[index + 1] : null,
+            prev: timeline[index - 1] ?? null,
+            next: timeline[index + 1] ?? null,
         },
     }));
 }
