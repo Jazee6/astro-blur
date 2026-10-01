@@ -6,6 +6,7 @@ const tagSchema = z.string()
     .trim()
     .min(1, "标签不能为空")
     .refine(tag => !tag.includes('/'), "标签不能包含 /")
+    .refine(tag => tag !== '.' && tag !== '..', "标签不能是 . 或 ..")
 
 export const postSchema = z.object({
     title: z.string(),

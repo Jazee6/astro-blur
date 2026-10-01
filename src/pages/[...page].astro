@@ -24,7 +24,7 @@ const {page} = Astro.props
 ---
 <MainLayout>
     <div class="grow">
-        <ul class="space-y-4">
+        <ul class="flex flex-col gap-4">
             {
                 page.data.map((post) => (
                     <PostCard post={post}/>

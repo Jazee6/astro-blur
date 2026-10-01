@@ -19,8 +19,10 @@ import {Icon} from 'astro-icon/components'
                 })
             }
         </nav>
-        <button id="menu" class="ml-auto hidden max-sm:flex icon-button cursor-pointer relative" aria-label="更多菜单" aria-expanded="false">
-            <Icon class="w-6 h-6 m-auto" name="material-symbols:menu-rounded"/>
+        <div class="relative ml-auto hidden max-sm:flex">
+            <button id="menu" class="icon-button" aria-label="更多菜单" aria-expanded="false" aria-controls="menu-dropdown">
+                <Icon class="w-6 h-6 m-auto" name="material-symbols:menu-rounded"/>
+            </button>
             <nav id="menu-dropdown"
                  class="absolute top-8 right-0 rounded-xl shadow-xl bg-base hidden animate-in fade-in">
                 {
@@ -37,7 +39,7 @@ import {Icon} from 'astro-icon/components'
                     })
                 }
             </nav>
-        </button>
+        </div>
         <button id="search" class="ml-4 icon-button" aria-label="搜索">
             <Icon class="block w-6 h-6 m-auto" name="material-symbols:search-rounded"/>
         </button>
@@ -77,13 +79,16 @@ import {Icon} from 'astro-icon/components'
         searchContainer?.querySelector("input")?.focus()
     })
 
+    // 在输入框、文本域（如评论框）或可编辑区域里输入 "/" 时不打开搜索
+    const isTyping = (el) => el instanceof HTMLElement
+        && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))
+
     document.documentElement.addEventListener("keydown", (e) => {
-        if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
+        if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !isTyping(e.target)) {
+            e.preventDefault()
             const searchContainer = document.querySelector("#search-container")
             searchContainer?.classList.remove("hidden")
-            setTimeout(() => {
-                searchContainer?.querySelector("input")?.focus()
-            })
+            searchContainer?.querySelector("input")?.focus()
         }
         if (e.key === "Escape") {
             const searchContainer = document.querySelector("#search-container")

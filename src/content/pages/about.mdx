@@ -4,7 +4,7 @@ title: 'About'
 import {Icon} from 'astro-icon/components'
 import {socialLinks} from '../../config'
 
-<div className="flex self-center mt-2 space-x-2">
+<div className="flex self-center mt-2 gap-2">
     {
         socialLinks.map((link) => (
             <a href={link.url} target="_blank" rel="noopener noreferrer" aria-label={link.label}>

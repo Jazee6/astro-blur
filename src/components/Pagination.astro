@@ -42,7 +42,7 @@ const getUrl = (page: number) => {
     return customGetUrl ? customGetUrl(page) : (page === 1 ? '/' : `/${page}`)
 }
 ---
-<div class:list={[className, 'flex space-x-2']}>
+<div class:list={[className, 'flex gap-2']}>
     {page.url.prev ? (
             <a href={page.url.prev} aria-label="上一页"
                class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors duration-150 ease-[ease]">
@@ -59,12 +59,12 @@ const getUrl = (page: number) => {
             pages.map(p => {
                 if (p === -1) {
                     return (
-                            <Icon class="self-center" name="material-symbols:more-horiz"/>
+                            <Icon class="self-center" name="material-symbols:more-horiz" aria-hidden="true"/>
                     )
                 }
                 if (p === page.currentPage) {
                     return (
-                            <a href={getUrl(p)}
+                            <a href={getUrl(p)} aria-current="page"
                                class="flex items-center justify-center w-12 rounded-xl bg-hover active:bg-active">
                                 {p}
                             </a>

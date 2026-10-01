@@ -1,6 +1,7 @@
 ---
 import '../global.css';
 import {siteConfig} from "../config";
+import {serializeJsonLd} from "../utils";
 
 interface Props {
     title: string;
@@ -86,5 +87,5 @@ const jsonLd = {
 <meta property="twitter:image" content={new URL(image, Astro.url)}/>
 
 <!-- JSON-LD Structured Data -->
-<script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)}/>
+<script is:inline type="application/ld+json" set:html={serializeJsonLd(jsonLd)}/>
 <slot/>
