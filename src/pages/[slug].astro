@@ -3,6 +3,7 @@ import PageLayout from "../layouts/PageLayout.astro";
 import {getCollection, render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
 import {getTitle} from "../utils";
+import ImageZoom from "../components/ImageZoom.astro";
 
 export async function getStaticPaths() {
     const pages = await getCollection('pages');
@@ -27,11 +28,4 @@ const {Content} = await render(page);
     </article>
 </PageLayout>
 
-<script>
-    import mediumZoom from 'medium-zoom';
-
-    mediumZoom('[data-zoomable]', {
-        margin: 24,
-        background: 'rgba(0, 0, 0, 0.85)',
-    });
-</script>
+<ImageZoom/>

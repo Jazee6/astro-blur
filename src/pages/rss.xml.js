@@ -1,14 +1,10 @@
 import rss from '@astrojs/rss';
-import {getCollection} from 'astro:content';
 import {siteConfig} from "../config";
-import {sortPosts} from "../utils";
+import {getPublishedPosts} from "../utils/posts";
 
 export async function GET(context) {
-    const posts = await getCollection('posts', ({data}) => {
-        return import.meta.env.PROD ? data.isDraft !== true : true
-    });
     // 与站点其他列表一致：置顶优先，再按日期降序
-    sortPosts(posts);
+    const posts = await getPublishedPosts();
     return rss({
         title: siteConfig.title,
         description: siteConfig.description,

@@ -1,19 +1,18 @@
 ---
-import {getTitle, serializeJsonLd, sortPosts} from "../../utils";
+import {getTitle, serializeJsonLd} from "../../utils";
+import {getPublishedPosts} from "../../utils/posts";
 import {normalizeTag} from "../../utils/tags";
 import {siteConfig} from "../../config";
 import Badge from "../../components/Badge.astro";
-import {getCollection, render} from 'astro:content';
+import {render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
 import MainLayout from "../../layouts/MainLayout.astro";
 import Comment from "../../components/Comment.astro";
 import Toc from "../../components/Toc.astro";
+import ImageZoom from "../../components/ImageZoom.astro";
 
 export async function getStaticPaths() {
-    const posts = await getCollection('posts', ({data}) => {
-        return import.meta.env.PROD ? data.isDraft !== true : true
-    })
-    sortPosts(posts);
+    const posts = await getPublishedPosts();
     return posts.map((post, index) => ({
         params: {slug: post.id},
         props: {
@@ -96,14 +95,9 @@ const blogPostingJsonLd = {
     </div>
 </MainLayout>
 
+<ImageZoom/>
+
 <script>
-    import mediumZoom from 'medium-zoom';
-
-    mediumZoom('[data-zoomable]', {
-        margin: 24,
-        background: 'rgba(0, 0, 0, 0.85)',
-    });
-
     // 带 hash 到达时，浏览器首次错点定位发生在图片加载前，布局变化后会漂移；
     // 等 load 后重新对齐一次（scrollIntoView 会应用 prose 标题的 scroll-my-20 偏移）
     window.addEventListener('load', () => {

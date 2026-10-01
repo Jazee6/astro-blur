@@ -15,25 +15,26 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 
 <!-- 左侧栏（≥md，由 MainLayout 的 aside 提供定位）：裸列表目录，sticky 跟随滚动，超高时内部滚动 -->
 {items.length > 0 && (
-    <nav class="relative base-card" aria-label="目录" data-toc data-slugs={JSON.stringify(items.map(h => h.slug))}
-         style="--toc-fade-bg: rgb(var(--color-back));">
+    <nav class="relative base-card" aria-label="目录" data-toc style="--toc-fade-bg: rgb(var(--color-back));">
         <div class="toc-scroll overflow-y-auto max-h-[calc(100vh-6.5rem)]">
-            <ul class="toc-list">
-                        <div class="toc-indicator" aria-hidden="true"></div>
-                        {items.map(h => (
-                            <li class="toc-item" data-slug={h.slug} data-active="false">
-                                <a
-                                        class:list={[
-                                            'toc-link block py-1 pr-2 text-sm leading-6 line-clamp-1 text-secondary hover:text-primary transition-colors duration-150 ease-[ease]',
-                                            h.depth === 3 ? 'pl-8' : 'pl-4',
-                                        ]}
-                                        href={`#${h.slug}`}
-                                >
-                                    {h.text}
-                                </a>
-                            </li>
-                        ))}
-            </ul>
+            <div class="toc-track">
+                <div class="toc-indicator" aria-hidden="true"></div>
+                <ul class="toc-list">
+                    {items.map(h => (
+                        <li class="toc-item" data-slug={h.slug} data-active="false">
+                            <a
+                                    class:list={[
+                                        'toc-link block py-1 pr-2 text-sm leading-6 line-clamp-1 text-secondary hover:text-primary transition-colors duration-150 ease-[ease]',
+                                        h.depth === 3 ? 'pl-8' : 'pl-4',
+                                    ]}
+                                    href={`#${h.slug}`}
+                            >
+                                {h.text}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
         <div class="toc-fade toc-fade-top" aria-hidden="true"></div>
         <div class="toc-fade toc-fade-bottom" aria-hidden="true"></div>
@@ -41,15 +42,18 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
 )}
 
 <style>
-    .toc-list {
+    .toc-track {
         position: relative;
+    }
+
+    .toc-list {
         margin: 0;
         padding: 0;
         list-style: none;
     }
 
     /* 左侧常驻淡色竖线 */
-    .toc-list::before {
+    .toc-track::before {
         content: '';
         position: absolute;
         left: 0;
@@ -71,7 +75,7 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
         background: rgb(var(--color-primary));
     }
 
-    .toc-list[data-ready] .toc-indicator {
+    .toc-track[data-ready] .toc-indicator {
         transition: top 200ms ease, height 200ms ease;
     }
 
@@ -115,7 +119,7 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .toc-list[data-ready] .toc-indicator,
+        .toc-track[data-ready] .toc-indicator,
         .toc-fade {
             transition: none;
         }
@@ -126,92 +130,74 @@ const items = headings.filter(h => h.depth === 2 || h.depth === 3);
     import {debounce} from "../utils";
 
     const root = document.querySelector<HTMLElement>('[data-toc]');
-    if (root) {
-        const slugs: string[] = JSON.parse(root.dataset.slugs!);
-        const targets = slugs
-                .map(slug => ({slug, el: document.getElementById(slug)}))
-                .filter(t => t.el);
-        if (targets.length > 0) {
-            const links = Array.from(root.querySelectorAll<HTMLElement>('[data-slug]'));
-            const lists = Array.from(root.querySelectorAll<HTMLElement>('.toc-list'));
-            const scrollers = Array.from(root.querySelectorAll<HTMLElement>('.toc-scroll'));
+    const scroller = root?.querySelector<HTMLElement>('.toc-scroll');
+    const track = root?.querySelector<HTMLElement>('.toc-track');
+    const indicator = root?.querySelector<HTMLElement>('.toc-indicator');
+    const items = Array.from(root?.querySelectorAll<HTMLElement>('.toc-item') ?? [])
+        .map(item => ({item, heading: document.getElementById(item.dataset.slug!)}))
+        .filter((t): t is {item: HTMLElement; heading: HTMLElement} => t.heading !== null);
 
-            // 可继续向上/向下滚动时显示渐变
-            const refreshFades = () => {
-                for (const sc of scrollers) {
-                    const box = sc.parentElement;
-                    if (!box) continue;
-                    box.dataset.fadeTop = sc.scrollTop > 1 ? 'true' : 'false';
-                    box.dataset.fadeBottom = sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 ? 'true' : 'false';
-                }
-            };
-            scrollers.forEach(sc => sc.addEventListener('scroll', refreshFades, {passive: true}));
+    if (root && scroller && track && indicator && items.length > 0) {
+        // 可继续向上/向下滚动时显示渐变
+        const refreshFades = () => {
+            root.dataset.fadeTop = scroller.scrollTop > 1 ? 'true' : 'false';
+            root.dataset.fadeBottom = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 1 ? 'true' : 'false';
+        };
+        scroller.addEventListener('scroll', refreshFades, {passive: true});
 
-            // 激活区间：从最后一个滚过顶部偏移线的标题，到视口内可见的最后一个标题
-            // animate=false 时指示条直接跳到目标位置（初始化/resize/图片加载）
-            const update = (animate: boolean) => {
-                const line = 128;
-                let start = 0;
-                targets.forEach((t, i) => {
-                    if (t.el!.getBoundingClientRect().top <= line) start = i;
-                });
-                let end = start;
-                const vh = window.innerHeight;
-                for (let i = start; i < targets.length; i++) {
-                    if (targets[i].el!.getBoundingClientRect().top < vh) end = i;
-                }
-                const active = new Set(targets.slice(start, end + 1).map(t => t.slug));
-                for (const el of links) {
-                    el.dataset.active = active.has(el.dataset.slug!) ? 'true' : 'false';
-                }
+        // 激活区间变化时，自动滚动目录保证区间可见（不动用户手动滚动的位置）
+        let rangeKey = '';
+        const revealRange = (first: HTMLElement, last: HTMLElement) => {
+            const key = `${first.dataset.slug}|${last.dataset.slug}`;
+            if (key === rangeKey) return;
+            rangeKey = key;
 
-                for (const list of lists) {
-                    if (!animate) delete list.dataset.ready;
-                    const indicator = list.querySelector<HTMLElement>('.toc-indicator');
-                    const activeItems = (Array.from(list.children)
-                            .filter(el => el instanceof HTMLElement && el.dataset.slug !== undefined) as HTMLElement[])
-                            .filter(el => active.has(el.dataset.slug!));
-                    if (indicator && activeItems.length > 0) {
-                        const first = activeItems[0];
-                        const last = activeItems[activeItems.length - 1];
-                        indicator.style.top = `${first.offsetTop}px`;
-                        indicator.style.height = `${last.offsetTop + last.offsetHeight - first.offsetTop}px`;
+            const scRect = scroller.getBoundingClientRect();
+            const top = first.getBoundingClientRect().top - scRect.top + scroller.scrollTop;
+            const bottom = last.getBoundingClientRect().bottom - scRect.top + scroller.scrollTop;
+            let target: number | null = null;
+            if (bottom > scroller.scrollTop + scroller.clientHeight) {
+                target = bottom - scroller.clientHeight;
+            } else if (top < scroller.scrollTop) {
+                target = top;
+            }
+            if (target !== null) {
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                scroller.scrollTo({top: target, behavior: reduced ? 'auto' : 'smooth'});
+            }
+        };
 
-                        // 激活区间变化时，自动滚动目录列表保证区间可见（不动用户手动滚动的位置）
-                        const rangeKey = `${first.dataset.slug}|${last.dataset.slug}`;
-                        if (rangeKey !== list.dataset.rangeKey) {
-                            list.dataset.rangeKey = rangeKey;
-                            const sc = list.closest<HTMLElement>('.toc-scroll');
-                            if (sc) {
-                                const scRect = sc.getBoundingClientRect();
-                                const top = first.getBoundingClientRect().top - scRect.top + sc.scrollTop;
-                                const bottom = last.getBoundingClientRect().bottom - scRect.top + sc.scrollTop;
-                                const viewTop = sc.scrollTop;
-                                const viewBottom = viewTop + sc.clientHeight;
-                                let target: number | null = null;
-                                if (bottom > viewBottom) {
-                                    target = bottom - sc.clientHeight;
-                                } else if (top < viewTop) {
-                                    target = top;
-                                }
-                                if (target !== null) {
-                                    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                                    sc.scrollTo({top: target, behavior: reduced ? 'auto' : 'smooth'});
-                                }
-                            }
-                        }
-                    }
-                    if (!animate) {
-                        requestAnimationFrame(() => list.dataset.ready = 'true');
-                    }
-                }
-                refreshFades();
-            };
+        // 激活区间：从最后一个滚过阅读线的标题，到视口内可见的最后一个标题
+        // animate=false 时指示条直接跳到目标位置（初始化/resize/图片加载）
+        const update = (animate: boolean) => {
+            const line = 128;
+            let start = 0;
+            items.forEach((t, i) => {
+                if (t.heading.getBoundingClientRect().top <= line) start = i;
+            });
+            let end = start;
+            for (let i = start; i < items.length; i++) {
+                if (items[i].heading.getBoundingClientRect().top < window.innerHeight) end = i;
+            }
+            items.forEach((t, i) => {
+                t.item.dataset.active = start <= i && i <= end ? 'true' : 'false';
+            });
 
-            document.addEventListener('scroll', debounce(() => update(true)), {passive: true});
-            window.addEventListener('resize', debounce(() => update(false)));
-            window.addEventListener('load', () => update(false));
-            update(false);
-        }
+            if (!animate) delete track.dataset.ready;
+            const first = items[start].item;
+            const last = items[end].item;
+            indicator.style.top = `${first.offsetTop}px`;
+            indicator.style.height = `${last.offsetTop + last.offsetHeight - first.offsetTop}px`;
+            revealRange(first, last);
+            if (!animate) {
+                requestAnimationFrame(() => track.dataset.ready = 'true');
+            }
+            refreshFades();
+        };
+
+        document.addEventListener('scroll', debounce(() => update(true)), {passive: true});
+        window.addEventListener('resize', debounce(() => update(false)));
+        window.addEventListener('load', () => update(false));
+        update(false);
     }
 </script>
