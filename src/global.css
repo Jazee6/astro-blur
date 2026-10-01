@@ -33,7 +33,7 @@
 }
 
 @utility base-card {
-    @apply bg-base transition-colors rounded-xl p-4;
+    @apply bg-base rounded-xl p-4;
 }
 
 @utility article {
@@ -68,7 +68,7 @@
     }
 
     body {
-        @apply flex flex-col text-primary bg-back transition-colors
+        @apply flex flex-col text-primary bg-back
     }
 
     .light {
@@ -87,6 +87,13 @@
         --color-secondary: 115 115 115;
         --color-hover: 82 82 82;
         --color-active: 64 64 64;
+    }
+
+    /* 切换主题的那一帧内禁用所有过渡，避免悬停类元素的颜色过渡与整页淡化叠加或分批换色 */
+    [data-theme-switching] *,
+    [data-theme-switching] *::before,
+    [data-theme-switching] *::after {
+        transition: none !important;
     }
 
     /* 减少动态效果：关闭平滑滚动、页面切换与所有位移/缩放/旋转/尺寸类过渡，
@@ -109,6 +116,23 @@
             transition: transform 1ms linear !important;
         }
     }
+}
+
+/* 跨文档页面切换：整页交叉淡化；不支持的浏览器照常跳转。主题切换复用同一组伪元素 */
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: var(--transition-duration-slow);
+    animation-timing-function: var(--default-transition-timing-function);
 }
 
 .tk-footer {
