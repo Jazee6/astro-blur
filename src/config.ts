@@ -1,6 +1,6 @@
 export const siteConfig: SiteConfig = {
     title: "Astro Blur",
-    language: "zh",
+    language: "en",
     description: "A static blog theme built with Astro. Powered by Astro Blog Theme Blur.",
     keywords: "Astro, blog, theme, Astro Blog Theme Blur",
     author: "Astro Blur",

@@ -3,12 +3,12 @@
     "id": 1,
     "title": "Astro Blur",
     "repo": "https://github.com/Jazee6/astro-blur",
-    "description": "A static blog theme built with Astro / 一个静态Astro博客主题"
+    "description": "A static blog theme built with Astro"
   },
   {
     "id": 2,
     "title": "Astro",
     "repo": "https://github.com/withastro/astro",
-    "description": "The web framework for content-driven websites / 面向内容驱动网站的 Web 框架"
+    "description": "The web framework for content-driven websites"
   }
 ]

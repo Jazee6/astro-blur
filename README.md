@@ -16,6 +16,7 @@ English | [中文](./README.zh.md)
 - ✅ Responsive layout / code highlight / Mermaid diagrams / table of contents (collapsible on small screens)
 - ✅ Theme mode: system / light / dark (no flash; system mode follows OS changes live)
 - ✅ Restrained motion: cross-fade on page and theme changes, open/close transitions for popovers (progressive enhancement; respects reduced-motion)
+- ✅ UI in English or Chinese, with a per-post language for posts written in another language
 - ✅ Neutral demo content and local assets, ready to be replaced with your own site
 
 ## Requirements
@@ -59,6 +60,23 @@ bun run new notes/hello.mdx        # Preserves the .md / .mdx extension
 ## Configuration
 
 Site information, navigation, social links, and pagination size are configured in `src/config.ts`.
+
+## Languages
+
+`language` in `src/config.ts` sets the site language (`en` by default). It is used for `<html lang>`, dates and the UI text, which is available in English (`en`) and Chinese (`zh`, including tags such as `zh-CN`); other languages fall back to English.
+
+A post written in another language can declare it in its frontmatter:
+
+```yaml
+---
+title: 你好
+lang: zh   # optional, defaults to the site language
+---
+```
+
+Only the post's own text (title, description, body, table of contents entries and search results) is marked with that language; the surrounding UI stays in the site language.
+
+Pagefind builds its search index in the language of `<html lang>`. If the site mixes Chinese or Japanese posts into a site in another language, add a `pagefind.yml` with `force_language: zh` (or `ja`) at the project root, so that words inside sentences can be found; English is still matched by prefix but loses stemming.
 
 ## Standalone Pages
 

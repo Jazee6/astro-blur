@@ -6,66 +6,66 @@ tags: ["Markdown", "Example"]
 pinned: true
 ---
 
-这是一个综合的 Markdown 语法演示文档，展示了常用的格式化功能。
+A comprehensive tour of Markdown syntax, showing the formatting features you will use most.
 
-## 文本格式
+## Text Formatting
 
-### 基本文本样式
+### Basic Text Styles
 
-这是普通文本。
+This is plain text.
 
-**这是粗体文本**
+**This is bold text**
 
-*这是斜体文本*
+*This is italic text*
 
-***这是粗体加斜体文本***
+***This is bold and italic text***
 
-~~这是删除线文本~~
+~~This is strikethrough text~~
 
-`这是行内代码`
+`This is inline code`
 
-### 引用
+### Blockquotes
 
-> 这是一个引用块。
+> This is a blockquote.
 >
-> 可以包含多行内容。
+> It can span multiple lines.
 >
-> > 这是嵌套引用。
+> > This is a nested quote.
 
-## 列表
+## Lists
 
-### 无序列表
+### Unordered Lists
 
-- 项目 1
-- 项目 2
-    - 子项目 2.1
-    - 子项目 2.2
-        - 子子项目 2.2.1
-- 项目 3
+- Item 1
+- Item 2
+    - Sub-item 2.1
+    - Sub-item 2.2
+        - Sub-sub-item 2.2.1
+- Item 3
 
-### 有序列表
+### Ordered Lists
 
-1. 第一项
-2. 第二项
-    1. 子项目 2.1
-    2. 子项目 2.2
-3. 第三项
+1. First item
+2. Second item
+    1. Sub-item 2.1
+    2. Sub-item 2.2
+3. Third item
 
-### 任务列表
+### Task Lists
 
-- [x] 已完成的任务
-- [ ] 待完成的任务
-- [ ] 另一个待完成的任务
+- [x] A completed task
+- [ ] A pending task
+- [ ] Another pending task
 
-## 代码
+## Code
 
-### 行内代码
+### Inline Code
 
-使用 `console.log()` 来输出信息。
+Use `console.log()` to print a message.
 
-### 代码块
+### Code Blocks
 
-#### JavaScript 示例
+#### JavaScript
 
 ```javascript
 function greet(name) {
@@ -76,7 +76,7 @@ const message = greet('World');
 console.log(message);
 ```
 
-#### Python 示例
+#### Python
 
 ```python
 def fibonacci(n):
@@ -84,12 +84,12 @@ def fibonacci(n):
         return n
     return fibonacci(n-1) + fibonacci(n-2)
 
-# 生成斐波那契数列
+# Print the Fibonacci sequence
 for i in range(10):
     print(f"F({i}) = {fibonacci(i)}")
 ```
 
-#### CSS 示例
+#### CSS
 
 ```css
 .example {
@@ -103,109 +103,109 @@ for i in range(10):
 }
 ```
 
-## Mermaid 图表
+## Mermaid Diagrams
 
 ```mermaid
 flowchart LR
-    accTitle: 内容发布流程
-    accDescr: Markdown 内容经过构建检查后发布为静态页面，失败时返回修改。
-    A[撰写 Markdown] --> B{构建是否成功？}
-    B -- 是 --> C[发布静态页面]
-    B -- 否 --> D[修复 Mermaid 源代码块]
+    accTitle: Publishing flow
+    accDescr: Markdown content is published as static pages after the build checks it, and goes back for fixes when the build fails.
+    A[Write Markdown] --> B{Build succeeded?}
+    B -- Yes --> C[Publish static pages]
+    B -- No --> D[Fix the Mermaid source block]
     D --> B
 ```
 
-## 链接和图片
+## Links and Images
 
-### 链接
+### Links
 
 [GitHub](https://github.com)
 
-[相对链接到关于页面](/about)
+[Relative link to the About page](/about)
 
-[带标题的链接](https://astro.build "Astro 官网")
+[Link with a title](https://astro.build "Astro website")
 
-### 自动链接
+### Autolinks
 
 https://www.example.com
 
-### 图片
+### Images
 
-![示例图片](/identity.svg)
+![Example image](/identity.svg)
 
-## 表格
+## Tables
 
-| 功能     | 描述      | 支持情况 |
-|--------|---------|------|
-| **标题** | 多级标题支持  | ✅    |
-| **列表** | 有序和无序列表 | ✅    |
-| **代码** | 语法高亮    | ✅    |
-| **表格** | 数据展示    | ✅    |
-| **链接** | 内外链接    | ✅    |
+| Feature    | Description                 | Supported |
+|------------|-----------------------------|-----------|
+| **Headings** | Multiple heading levels   | ✅         |
+| **Lists**  | Ordered and unordered lists | ✅         |
+| **Code**   | Syntax highlighting         | ✅         |
+| **Tables** | Tabular data                | ✅         |
+| **Links**  | Internal and external links | ✅         |
 
-## 水平分割线
+## Horizontal Rules
 
 ---
 
-## 数学公式（如果支持）
+## Math (If Supported)
 
-行内公式：$E = mc^2$
+Inline: $E = mc^2$
 
-块级公式：
+Block:
 
 $$
 \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
 $$
 
-## 特殊符号和转义
+## Special Characters and Escaping
 
-- 版权符号：&copy; 2024
-- 商标符号：&trade;
-- 注册商标：&reg;
-- 箭头：&larr; &uarr; &rarr; &darr;
+- Copyright: &copy; 2024
+- Trademark: &trade;
+- Registered trademark: &reg;
+- Arrows: &larr; &uarr; &rarr; &darr;
 
-转义字符示例：
+Escaping:
 
-\*这不是斜体\*
+\*This is not italic\*
 
-\`这不是代码\`
+\`This is not code\`
 
-## 脚注
+## Footnotes
 
-这里有一个脚注引用[^1]。
+Here is a footnote reference[^1].
 
-这里有另一个脚注[^note]。
+Here is another footnote[^note].
 
-[^1]: 这是第一个脚注的内容。
+[^1]: This is the first footnote.
 
-[^note]: 这是一个带有标识符的脚注。
+[^note]: This is a footnote with a named identifier.
 
-## HTML 标签
+## HTML Tags
 
 <details>
-<summary>点击展开详细信息</summary>
+<summary>Click to expand</summary>
 
-这是一个可折叠的内容区域。
+This is a collapsible section.
 
-- 支持 Markdown 语法
-- **粗体文本**
-- `代码`
+- Markdown works here
+- **Bold text**
+- `Code`
 
 </details>
 
-<mark>高亮文本</mark>
+<mark>Highlighted text</mark>
 
 <kbd>Ctrl</kbd> + <kbd>C</kbd>
 
-## 总结
+## Summary
 
-这个示例文档展示了 Markdown 的主要语法功能，包括：
+This example covers the main Markdown features:
 
-1. **文本格式化** - 粗体、斜体、删除线
-2. **结构化内容** - 标题、列表、表格
-3. **代码展示** - 行内代码和代码块
-4. **图表展示** - Mermaid 流程图
-5. **媒体内容** - 链接和图片
-6. **高级功能** - 数学公式、脚注、HTML 标签
+1. **Text formatting** - bold, italic, strikethrough
+2. **Structured content** - headings, lists, tables
+3. **Code** - inline code and code blocks
+4. **Diagrams** - Mermaid flowcharts
+5. **Media** - links and images
+6. **Advanced features** - math, footnotes, HTML tags
 
-希望这个示例对你学习和使用 Markdown 有帮助！
+Hope it helps you get started with Markdown!
