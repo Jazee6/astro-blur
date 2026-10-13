@@ -3,6 +3,7 @@ import {getTimeline, getTitle, serializeJsonLd} from "../../utils";
 import {getPublishedPosts} from "../../utils/posts";
 import {normalizeTag} from "../../utils/tags";
 import {siteConfig} from "../../config";
+import {contentLang, t} from "../../utils/i18n";
 import Badge from "../../components/Badge.astro";
 import {render} from 'astro:content';
 import type {CollectionEntry} from 'astro:content';
@@ -34,6 +35,8 @@ interface Props {
 const {post, prev, next} = Astro.props;
 const {data} = post;
 const {Content, headings, remarkPluginFrontmatter} = await render(post);
+// 文章语言只标注文章自身文字（标题、正文、目录项），日期、标签等周边界面沿用站点语言
+const lang = contentLang(data.lang);
 
 const articleUrl = new URL(`/posts/${post.id}`, Astro.site).href;
 const blogPostingJsonLd = {
@@ -49,14 +52,15 @@ const blogPostingJsonLd = {
         url: siteConfig.site,
     },
     url: articleUrl,
+    inLanguage: data.lang ?? siteConfig.language,
 };
 ---
 <MainLayout title={getTitle(data.title)} description={data.description} ogType="article" pubDate={data.pubDate} lastModified={remarkPluginFrontmatter.lastModified}>
     <script is:inline slot="head" type="application/ld+json" set:html={serializeJsonLd(blogPostingJsonLd)}/>
-    <Toc slot="aside" headings={headings}/>
+    <Toc slot="aside" headings={headings} lang={lang}/>
     <div class='flex flex-col gap-4 grow min-w-0'>
-        <article class="article base-card grow" data-pagefind-body>
-            <h1>{data.title}</h1>
+        <article class="article base-card grow" data-pagefind-body data-pagefind-meta={lang && `lang:${lang}`}>
+            <h1 lang={lang}>{data.title}</h1>
 
             <div class="flex gap-2 not-prose flex-wrap">
                 <Badge icon="material-symbols:edit-calendar-rounded">
@@ -69,9 +73,13 @@ const blogPostingJsonLd = {
                 ))}
             </div>
 
-            <MobileToc headings={headings}/>
+            <MobileToc headings={headings} lang={lang}/>
 
-            <Content/>
+            {lang ? (
+                    <div lang={lang} class="*:last:mb-0">
+                        <Content/>
+                    </div>
+            ) : <Content/>}
         </article>
 
         {(prev || next) && (
@@ -79,16 +87,16 @@ const blogPostingJsonLd = {
                     {prev ? (
                                     <a href={`/posts/${prev.id}`}
                                        class="flex-1 min-w-0 card p-3">
-                                        <p class="text-secondary text-sm mb-1">← 上一篇</p>
-                                        <p class="font-bold truncate">{prev.data.title}</p>
+                                        <p class="text-secondary text-sm mb-1">{t.previousPost}</p>
+                                        <p class="font-bold truncate" lang={contentLang(prev.data.lang)}>{prev.data.title}</p>
                                     </a>
                         ) :
                             <div class="flex-1"/>}
                     {next ? (
                                     <a href={`/posts/${next.id}`}
                                        class="flex-1 min-w-0 card p-3 text-right">
-                                        <p class="text-secondary text-sm mb-1">下一篇 →</p>
-                                        <p class="font-bold truncate">{next.data.title}</p>
+                                        <p class="text-secondary text-sm mb-1">{t.nextPost}</p>
+                                        <p class="font-bold truncate" lang={contentLang(next.data.lang)}>{next.data.title}</p>
                                     </a>
                         ) :
                             <div class="flex-1"/>}

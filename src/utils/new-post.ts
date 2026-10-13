@@ -16,26 +16,26 @@ export class PostPathError extends Error {
  */
 export function resolvePostPath(input: string, root: string = POSTS_DIR): string {
     if (typeof input !== "string" || input.trim().length === 0) {
-        throw new PostPathError("文章路径不能为空");
+        throw new PostPathError("Post path must not be empty");
     }
     if (path.isAbsolute(input)) {
-        throw new PostPathError(`文章路径必须是相对路径：${input}`);
+        throw new PostPathError(`Post path must be relative: ${input}`);
     }
 
     const segments = input.split(/[\\/]/);
     for (const segment of segments) {
         if (segment === "") {
-            throw new PostPathError(`文章路径包含空路径段：${input}`);
+            throw new PostPathError(`Post path contains an empty segment: ${input}`);
         }
         if (segment === "." || segment === "..") {
-            throw new PostPathError(`文章路径不允许使用 “.” 或 “..” 跳转：${input}`);
+            throw new PostPathError(`Post path must not contain "." or ".." segments: ${input}`);
         }
     }
 
     const fileName = segments[segments.length - 1];
     const extension = path.extname(fileName).toLowerCase();
     if (extension && !SUPPORTED_EXTENSIONS.includes(extension)) {
-        throw new PostPathError(`不支持的文章扩展名 “${extension}”，仅支持 ${SUPPORTED_EXTENSIONS.join("/")}`);
+        throw new PostPathError(`Unsupported post extension "${extension}", expected ${SUPPORTED_EXTENSIONS.join(" or ")}`);
     }
     // 归一化为小写扩展名：内容加载器的 glob 模式 **/*.{md,mdx} 区分大小写，
     // 保留大写扩展名（如 hello.MD）创建的文件会被静默忽略
@@ -46,7 +46,7 @@ export function resolvePostPath(input: string, root: string = POSTS_DIR): string
     const rootPath = path.resolve(root);
     const fullPath = path.resolve(rootPath, segments.join("/"));
     if (fullPath !== rootPath && !fullPath.startsWith(rootPath + path.sep)) {
-        throw new PostPathError(`文章路径越过了 posts 根目录：${input}`);
+        throw new PostPathError(`Post path escapes the posts directory: ${input}`);
     }
     return fullPath;
 }
@@ -65,7 +65,7 @@ function getDateString(): string {
 export function createPost(input: string, root: string = POSTS_DIR): string {
     const fullPath = resolvePostPath(input, root);
     if (fs.existsSync(fullPath)) {
-        throw new PostPathError(`文章已存在：${fullPath}`);
+        throw new PostPathError(`Post already exists: ${fullPath}`);
     }
     const title = path.basename(fullPath).replace(/\.(md|mdx)$/i, "");
     const yamlTitle = JSON.stringify(title)
@@ -89,7 +89,7 @@ export function runCli(argv: string[] = process.argv.slice(2)): void {
         console.error(`Error: No filename argument provided
 Usage: bun run new <filename>
   bun run new hello-world
-  bun run new notes/2026/hello    # 安全的相对嵌套路径，自动创建目录，缺省扩展名补 .md`)
+  bun run new notes/2026/hello    # nested paths create their directories; .md is added when there is no extension`)
         process.exit(1);
     }
 

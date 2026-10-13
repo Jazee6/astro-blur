@@ -2,12 +2,13 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import {getTitle} from "../utils";
 import {getCollection} from "astro:content";
+import {t} from "../utils/i18n";
 
 const links = await getCollection("links");
 // 保留 links.json 中的声明顺序，不做构建期随机打乱
 const data = links.map(({data}) => data);
 ---
-<PageLayout comments={true} title={getTitle('Links')} description="Friend links">
+<PageLayout comments={true} title={getTitle(t.links)} description={t.linksDescription}>
     <ul data-pagefind-body class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
         {data.map(({title, description, url, avatar}) => (
                 <li>

@@ -4,9 +4,9 @@ import {z} from 'astro/zod'
 
 const tagSchema = z.string()
     .trim()
-    .min(1, "标签不能为空")
-    .refine(tag => !tag.includes('/'), "标签不能包含 /")
-    .refine(tag => tag !== '.' && tag !== '..', "标签不能是 . 或 ..")
+    .min(1, "Tags must not be empty")
+    .refine(tag => !tag.includes('/'), "Tags must not contain /")
+    .refine(tag => tag !== '.' && tag !== '..', "Tags must not be . or ..")
 
 export const postSchema = z.object({
     title: z.string(),
@@ -15,6 +15,9 @@ export const postSchema = z.object({
     isDraft: z.boolean().optional(),
     pinned: z.boolean().optional().default(false),
     tags: z.array(tagSchema).optional().default([]),
+    lang: z.string()
+        .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$/, "lang must be a BCP 47 language tag such as zh or en-US")
+        .optional(),
 })
 
 const posts = defineCollection({

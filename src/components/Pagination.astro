@@ -2,6 +2,7 @@
 import type {CollectionEntry} from "astro:content";
 import type {Page} from "astro";
 import {Icon} from 'astro-icon/components'
+import {t} from "../utils/i18n";
 
 interface Props {
     page: Page<CollectionEntry<'posts'>>
@@ -44,7 +45,7 @@ const getUrl = (page: number) => {
 ---
 <div class:list={[className, 'flex gap-2']}>
     {page.url.prev ? (
-            <a href={page.url.prev} aria-label="上一页"
+            <a href={page.url.prev} aria-label={t.previousPage}
                class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors">
                 <Icon class="w-8 h-8" name="material-symbols:chevron-left-rounded"/>
             </a>
@@ -81,7 +82,7 @@ const getUrl = (page: number) => {
     </div>
 
     {page.url.next ? (
-            <a href={page.url.next} aria-label="下一页"
+            <a href={page.url.next} aria-label={t.nextPage}
                class="block p-2 rounded-xl bg-base hover:bg-hover cursor-pointer transition-colors">
                 <Icon class="w-8 h-8" name="material-symbols:chevron-right-rounded"/>
             </a>

@@ -2,6 +2,7 @@
 import PageLayout from "../layouts/PageLayout.astro";
 import {getTitle} from "../utils";
 import {getCollection} from "astro:content";
+import {t} from "../utils/i18n";
 import {Icon} from 'astro-icon/components'
 
 const projects = await getCollection("projects");
@@ -9,7 +10,7 @@ const data = projects
     .sort((a, b) => Number(b.id) - Number(a.id))
     .map(({data}) => data);
 ---
-<PageLayout title={getTitle('Projects')} description="Projects">
+<PageLayout title={getTitle(t.projects)} description={t.projects}>
     <ul data-pagefind-body>
         {data.map(({title, repo, description}) => (
                 <li>

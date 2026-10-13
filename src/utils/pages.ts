@@ -20,13 +20,13 @@ const RESERVED_SEGMENTS = new Set([
 export function getReservedPathConflict(pageId: string): string | null {
     const first = pageId.split("/")[0].toLowerCase();
     if (RESERVED_SEGMENTS.has(first)) {
-        return `“/${first}” 是主题保留路径`;
+        return `"/${first}" is reserved by the theme`;
     }
     if (/^\d+$/.test(first)) {
-        return `纯数字路径 “/${first}” 与首页分页冲突`;
+        return `the numeric path "/${first}" collides with home page pagination`;
     }
     if (/^sitemap-(index|\d+)\.xml$/.test(first)) {
-        return `“/${first}” 与站点地图冲突`;
+        return `"/${first}" collides with the sitemap`;
     }
     return null;
 }

@@ -4,19 +4,20 @@ import Badge from "../../components/Badge.astro";
 import {getPublishedPosts} from "../../utils/posts";
 import {getAllTags} from "../../utils/tags";
 import {getTitle} from "../../utils";
+import {t} from "../../utils/i18n";
 
 const posts = await getPublishedPosts();
 const tags = getAllTags(posts);
 ---
 
 
-<MainLayout title={getTitle("Tags")} description="All tags">
+<MainLayout title={getTitle(t.tags)} description={t.tagsDescription}>
     <div class="grow flex flex-col gap-2">
-        <h1 class="text-2xl font-bold p-1">Tags</h1>
+        <h1 class="text-2xl font-bold p-1">{t.tags}</h1>
 
         <div class='base-card'>
             {tags.length === 0 ? (
-                    <p class="text-secondary">No tags yet.</p>
+                    <p class="text-secondary">{t.noTags}</p>
             ) : (
                     <div class="flex flex-wrap gap-2">
                         {tags.map(tag => (
