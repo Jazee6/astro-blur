@@ -4,6 +4,7 @@ description: 前端八股
 pubDate: 2023-11-09
 isDraft: true
 tags: ["JavaScript", "Browser", "Network", "Algorithms"]
+lang: zh
 ---
 
 ## JS

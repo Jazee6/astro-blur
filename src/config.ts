@@ -1,6 +1,6 @@
 export const siteConfig: SiteConfig = {
     title: "Hi! Jazee",
-    language: "zh",
+    language: "en",
     description: "Jazee's personal blog. Powered by Astro Blog Theme Blur.",
     keywords: "Jazee, blog, personal blog, Astro, Astro Blog Theme Blur",
     author: "Jazee",

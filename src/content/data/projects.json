@@ -3,7 +3,7 @@
     "id": 4,
     "title": "Web Chat",
     "repo": "https://github.com/Jazee6/web-chat",
-    "description": "Room based serverless chat platform built on Cloudflare"
+    "description": "Telegram-style chat app that fits the Cloudflare Workers Free plan"
   },
   {
     "id": 3,

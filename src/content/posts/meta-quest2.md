@@ -4,6 +4,7 @@ description: Meta Quest 2 VR 简评+指南
 pubDate: 2022-02-15
 heroImage: https://blog-cdn.jaze.top/2024/01/662f4075c7e940799a48a97e284a9307.webp
 tags: ["VR", "Hardware", "Gaming"]
+lang: zh
 ---
 
 ## 故事
