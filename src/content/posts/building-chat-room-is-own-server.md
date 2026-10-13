@@ -1,255 +1,299 @@
 ---
-title: "我构建了一个每个房间都是独立服务器的聊天应用（运行在 Cloudflare 边缘网络）"
-description: "如何利用 Durable Objects 把每个聊天房间当作一个隔离的有状态微服务，拥有自己的数据库、WebSocket 连接和 WebRTC 协调，全部无需传统后端。"
-pubDate: 2026-06-06
+title: "Every Chat Is Its Own Server: Building a Telegram-Style App on Cloudflare's Free Plan"
+description: "How Web Chat runs private chats, groups, calls and end-to-end encrypted secret chats on the Cloudflare Workers Free plan: one Durable Object per chat and per user, one hibernating WebSocket per device, and an architecture shaped around 100,000 row writes a day."
+pubDate: 2026-10-13
 author: "Jazee"
-tags: ["Cloudflare", "WebSocket", "WebRTC", "React"]
+tags: ["Cloudflare", "Durable Objects", "WebSocket", "WebRTC", "Local-first"]
 ---
 
-大多数实时聊天应用都采用相同的架构：一组无状态 API 服务器、一层用于 WebSocket 扇出的 Redis pub/sub，以及位于连接池之后的 PostgreSQL 数据库。这套方案能用，但对于"用户发消息、其他人看到消息"这件本质上的小事来说，基础设施未免太重了。
+[Web Chat](https://chat.jaze.top) is a Telegram-style chat app. It has private chats and groups with replies, edits, recall, reactions, pins, forwarding, mentions and read receipts. There are photos, videos, files, voice messages and stickers; one-to-one and group calls with screen sharing; and secret chats with end-to-end encryption across multiple devices. It installs as a PWA, sends push notifications and works offline.
 
-我想试试能不能做出不一样的东西。结果就是 [web-chat](https://chat.jaze.top)，一个实时文字和语音通话应用，其中每一个聊天房间都作为独立隔离的服务器运行，拥有自己的数据库，全部跑在 Cloudflare 的边缘网络上。没有虚拟机、容器，也没有 Redis。它基于 Durable Objects、D1、R2 和 RealtimeKit 构建。
+All of it runs on the Cloudflare developer platform, and it's designed to fit the **Workers Free plan**. There are no VMs, no containers, no Redis and no Postgres. Every chat is a Durable Object with its own SQLite database, and so is every user.
 
-下面是它的工作原理以及我在构建过程中学到的东西。
+This post covers how that works and why the free plan ended up shaping nearly every decision in the architecture.
 
-## 无状态服务器处理有状态房间的问题
+## The Budget
 
-聊天房间天然是有状态的。在任何时刻，你都需要知道谁在线、他们发了什么消息、是否在语音通话中。传统做法把这种状态分散到多个服务中：Redis 维护在线状态，数据库存储消息，可能还有另一个服务处理 WebRTC 信令。
+Most architecture write-ups start from the features. This one has to start from the bill, because once the bill has to be zero, the free plan's limits stop being a pricing detail and become the design constraints.
 
-这些服务各自都会引入延迟。用户 A 的消息要先经过 API 服务器、进入 Redis，再通过用户 B 的 WebSocket 连接推送出去。如果 API 服务器崩溃，你就会丢失连接状态。如果 Redis 抖动，消息就会丢失。
+Here are the limits that matter, as of 2026-09-28:
 
-如果房间本身就能持有自己的状态呢？
+| Product | Metric | Free allowance |
+| --- | --- | --- |
+| Workers | Requests | 100,000 / day |
+| Workers | CPU | 10 ms / invocation |
+| Durable Objects | Requests | 100,000 / day |
+| Durable Objects | Duration | 13,000 GB-s / day |
+| Durable Objects | SQL rows written | 100,000 / day |
+| Durable Objects | SQL rows read | 5,000,000 / day |
+| KV | Writes | 1,000 / day |
+| Queues | Operations | 10,000 / day |
+| Realtime SFU / TURN | Egress | 1,000 GB / month |
 
-## 每个房间都是一个 Durable Object
+Three of these do most of the shaping:
 
-Cloudflare Durable Objects 解决了这个问题——它提供了一种有状态、单线程的计算单元，可以在本地持久化数据。在我的实现中，每个聊天房间映射到唯一的 Durable Object 实例。创建房间时，系统会生成一个唯一的 DO ID：
+- **Rows written** is the tightest. Indexes count as writes, `setAlarm()` counts as a write, and deletes count as writes. Reads are fifty times cheaper, so I happily trade reads for writes: fewer indexes, more scans of small tables.
+- **Duration** is 13,000 GB-s a day. At 128 MB per object, that's about **29 Durable Object hours a day for the whole account**. Two objects that never hibernate would use it all up. Anything long-lived has to hibernate.
+- **Requests** are where fan-out costs show up. Every RPC call to a Durable Object counts as one.
 
-```typescript
-const roomId = c.env.ROOM.newUniqueId();
+The others rule things out. KV's 1,000 writes a day means KV never holds per-user or per-message data. Queues' 10,000 operations a day keeps them off the message hot path. Cloudflare Images gives only 5,000 transformations a month, so thumbnails are made somewhere else.
+
+With the budget in hand, here's the shape of the system.
+
+## Every Chat Is a Server, and So Is Every User
+
+A chat app has two natural consistency boundaries:
+
+- **A chat** owns message order, membership and permissions.
+- **A user** owns their chat list, devices and unread state.
+
+So there are two kinds of Durable Objects, both backed by SQLite:
+
+- One `ChatDO` per chat, which is the single source of truth for that chat's message log, its sequence numbers and its members.
+- One `UserDO` per user, which owns the user's dialog list (one row per chat they're in), their devices and push subscriptions, and is also where all of that user's WebSockets land.
+
+D1 holds only what better-auth needs (users, sessions, linked accounts), plus the lookups that have to be global.
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser (PWA)"]
+    UI["React UI"]
+    SYNC["Sync worker in the leader tab<br/>SQLite WASM on OPFS<br/>one WebSocket"]
+    UI <--> SYNC
+  end
+
+  subgraph CF["Cloudflare: a single Worker deployment"]
+    ASSETS["Static assets<br/>(free, unlimited)"]
+    W["Worker<br/>Hono + better-auth"]
+    UDO["UserDO, one per user<br/>dialogs, devices, connections"]
+    CDO["ChatDO, one per chat<br/>message log, members"]
+    D1[("D1<br/>users, sessions, accounts")]
+    R2[("R2<br/>media, public custom domain")]
+  end
+
+  Browser -- "HTTPS" --> ASSETS
+  SYNC -- "hibernating WebSocket" --> W --> UDO
+  UDO -- "RPC" --> CDO
+  CDO -- "fan-out RPC" --> UDO
+  W --> D1
+  SYNC -- "presigned PUT" --> R2
+  Browser -- "GET media via CDN" --> R2
 ```
 
-当用户打开聊天页面时，Worker 上的 Hono 路由会在 D1（全局关系数据库）中查找房间，找到对应的 DO stub，然后把 WebSocket 升级请求直接代理给它：
+A few details make this cheaper than it looks:
+
+- **Chat IDs for private chats are deterministic**: `p:{smaller user id}:{larger user id}`. Opening a private chat never needs a directory lookup, and two people starting a chat at the same moment can't create two of them. Group IDs are random 128-bit values.
+- **`ChatDO` is never exposed to the internet.** Only `UserDO`s and the Worker call it, over RPC. The trusted `UserDO` passes in who's calling, and the `ChatDO` checks membership and permissions.
+- **Ownership flows one way.** Membership lives in `ChatDO.members`; a user's dialog list is a derived view. Every change is written to the `ChatDO` first and then fanned out to members' `UserDO`s.
+
+Why not keep messages in D1? D1 is a single writer per database, so every chat in the system would contend for one database, and I'd have to handle sequence-number races myself. Real-time push would still need Durable Objects anyway. A single global Durable Object would just be a bottleneck. One object per chat gives every chat its own little server with its own storage, and a soft limit of around 1,000 requests per second per chat is far more than any group of 20 people will generate.
+
+## Correctness for Free
+
+Durable Objects bring a few guarantees that would otherwise need locks and transactions:
+
+- **Single-threaded execution with input gates.** Assigning the next sequence number inside a `ChatDO` is naturally serial. There's no lock.
+- **Output gates.** A response isn't sent until the SQLite writes before it are durable. When the client receives a `seq`, the message is already on disk.
+- **Synchronous SQL.** `ctx.storage.sql.exec` is synchronous, so multiple writes within one event are implicitly atomic.
+
+There are three sequence numbers, borrowed from Telegram's MTProto model:
+
+| Number | Scope | Increments on | Used for |
+| --- | --- | --- | --- |
+| `seq` | Chat | Every new message | Ordering, pagination, the message's permanent ID |
+| `chat_pts` | Chat | Any change to a message: new, edit, recall, reaction | Incremental sync within a chat |
+| `user_pts` | User | Any change to a dialog row, setting, contact or recent call | Syncing the chat list |
+
+Edits and recalls don't change `seq`, but devices still need to pick them up incrementally, which is why there are two numbers per chat.
+
+The obvious way to keep these counters is a row that gets bumped on every message. That's one extra row write per message, forever. Instead, the counters aren't stored at all. Each message row records its own `seq` and `pts`, and when the object wakes up, it recovers the counters with `max()`:
 
 ```typescript
-app.get('/room/:id/ws', authMiddleware, async (c) => {
-  const roomId = c.req.param('id');
-  const stub = c.env.ROOM.get(roomIdFromName);
-  return stub.fetch(c.req.raw.url, c.req.raw);
-});
+// server/src/chat-do.ts (in the constructor)
+// Sequence numbers aren't stored in a counter row; they're recovered with max() on wake-up
+const tops = this.sql.one<{ seq: number | null; pts: number | null }>(
+  'SELECT max(seq) AS seq, max(pts) AS pts FROM messages',
+)
+this.topSeq = tops?.seq ?? 0
+this.chatPts = tops?.pts ?? 0
 ```
 
-在 Durable Object 内部，所有 WebSocket 连接都保存在一个 `Map<WebSocket, WsSession>` 里。当用户发送消息时，DO 会把它广播给每一个已连接的客户端。这里没有 pub/sub，也没有消息队列，只是对 Map 做一次循环遍历。
+`UserDO` does the same for `user_pts`, taking the maximum across every table that carries a `pts` column. Unread counts are never stored either: they're always `top_seq − last_read_seq`.
+
+## One Hibernating WebSocket per Device
+
+Each device keeps exactly one WebSocket, to its own `UserDO`, using the Hibernation API. Three billing rules make this the right shape:
+
+- An object that holds a WebSocket but can hibernate isn't billed for duration while it's idle.
+- Incoming WebSocket messages are billed at **20 messages per request**.
+- Automatic responses set with `setWebSocketAutoResponse` aren't billed at all.
+
+So the heartbeat never wakes the object, and per-connection state lives in the socket's attachment, where it survives hibernation:
 
 ```typescript
-for (const [ws, session] of this.sessions) {
-  ws.send(JSON.stringify({ type: 'message', data: message }));
+// server/src/user-do.ts (abridged)
+constructor(ctx: DurableObjectState, env: Env) {
+  super(ctx, env)
+  // ...
+  // The runtime answers ping with pong itself, without waking the object
+  ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(PING, PONG))
+}
+
+override async fetch(request: Request): Promise<Response> {
+  // ... the Worker has already checked the session and set the identity headers
+
+  // Keep only one connection per device
+  for (const old of this.ctx.getWebSockets(deviceId)) old.close(CLOSE_REPLACED, 'replaced')
+
+  const { 0: client, 1: server } = new WebSocketPair()
+  this.ctx.acceptWebSocket(server, [deviceId])
+  // Connection state lives in the attachment so it survives hibernation
+  server.serializeAttachment({
+    user_id: userId,
+    device_id: deviceId,
+    since: Date.now(),
+    visible: false,
+    hidden_at: 0,
+    viewing: [],
+  } satisfies Attachment)
+  return new Response(null, { status: 101, webSocket: client })
 }
 ```
 
-这比传统架构简单得多。房间自己维护在线状态、消息路由和持久化。如果 DO 从内存中被驱逐（Cloudflare 会休眠空闲的对象），它会在下次唤醒时通过反序列化的 WebSocket attachment 重新恢复 session map：
+Almost every call goes over this socket. Sending a message, loading history, marking a chat as read and starting a call are all frames on the WebSocket, and the `UserDO` proxies them to the right `ChatDO` over RPC. HTTP is used only where a socket can't be: signing in and out, signing upload URLs and fetching link previews. The incoming frame itself costs only 1/20 of a request and nothing from the Workers request quota; what a call really costs is the RPCs it triggers to `ChatDO`s and other `UserDO`s, which is what the cost table below counts.
+
+There's one hard rule inside every object: **no `setTimeout` or `setInterval`.** A pending timer keeps the object awake and billing. Expiry is handled by storing a timestamp and checking it on read, and anything that truly has to run later uses an Alarm, and calls to `setAlarm` are merged because each one costs a row write.
+
+I considered the alternatives. SSE plus HTTP POST turns every upstream message into a Worker request. A connection per open chat directly to its `ChatDO` multiplies connections and requests, and the chat list still needs a user-level connection anyway. A long-lived RPC session keeps state in memory, which defeats hibernation.
+
+## Write Fan-out, Capped at 20
+
+When a message lands in a `ChatDO`, every member's `UserDO` has to hear about it: to update the dialog row, push it to online devices, and send a Web Push notification to offline ones. There are two classic options. Write fan-out copies the event to every member up front; read fan-out has members pull it on demand.
+
+Read fan-out is what you need for channels with thousands of subscribers, and I sketched a tiered design with leased subscriptions for large chats. Then I made a product decision instead: **no channels for now, and groups are capped at 20 members.** With that cap, write fan-out for everything has a hard upper bound, and there's only one path for live updates, catch-up sync and unread counts.
+
+Here's what that costs. The row counts are asserted in tests with `sql.exec().rowsWritten`, so a change that quietly adds a write fails the test suite:
+
+| Operation | DO requests | DO rows written |
+| --- | --- | --- |
+| Send a private message | ≈ 2.05 | 4 |
+| Send to a group of N (N ≤ 20) | ≈ N + 0.05 | N + 2 |
+| Mark a private chat as read | ≈ 2.05 | 3 |
+| Mark a group as read | ≈ 0.05 | 1 |
+| Typing indicator | ≈ 1.05 + viewers | 0 |
+
+A private message is two rows in the `ChatDO` (the message and its `pts` index entry) plus one dialog row on each side. The worst case for a group message is 20 requests and 22 row writes.
+
+The fan-out itself never blocks the sender. Events are queued per user, merged, and delivered in `waitUntil` through a pool with a concurrency of six, which stays under the limit of six simultaneous open connections per invocation. The retry table is written only when a delivery fails, so the happy path costs nothing extra:
 
 ```typescript
-constructor(ctx, env) {
-  this.sessions = new Map();
-  // WebSockets 在休眠后依然存活。重新恢复 sessions。
-  for (const ws of this.ctx.getWebSockets()) {
-    const session = ws.deserializeAttachment();
-    this.sessions.set(ws, session);
+// server/src/chat-do.ts (abridged)
+private async flush() {
+  while (this.pending.size > 0) {
+    const batch = [...this.pending]
+    this.pending.clear()
+    await pool(batch, FANOUT_CONCURRENCY, async ([userId, events]) => {
+      try {
+        await this.env.USER.getByName(userId).onChatEvents(this.chatId!, userId, events, this.snapshot)
+      } catch (e) {
+        // Only failures touch the retry table; an Alarm retries them later
+        await this.enqueueRetry(userId, events)
+      }
+    })
   }
 }
 ```
 
-## 两套数据库，一个 ORM
+One failure mode I found only in production logs: the runtime limits how deeply calls can nest (`Subrequest depth limit exceeded`). After two `UserDO`s had been bouncing events back and forth through a `ChatDO` for a while, every call one of them made while handling a WebSocket message started getting rejected, including calls to D1 and R2. Calls made from an Alarm were unaffected. So fan-out failures retry from an Alarm, and when a `UserDO` hits this error while serving a client, it keeps the request in memory, schedules an immediate Alarm, and redoes the request from there before replying. Cloudflare doesn't document how the depth is inherited; this is inferred from the logs.
 
-最有意思的架构决策在于如何存储消息。我本可以把所有东西都塞进 D1（Cloudflare 边缘分布的 SQLite），但那样每条消息的写入都要走网络到 D1，给热路径增加延迟。
+## Signing In on 10 ms of CPU
 
-所以我把存储拆成了两层：
+Web Chat doesn't manage passwords and has no sign-up form. Identity comes from an OpenID Connect provider, connected through better-auth's Generic OAuth plugin, and D1 holds the resulting users, sessions and linked accounts. That keeps password hashing, the most CPU-hungry part of authentication, out of a Worker that gets only 10 ms of CPU per invocation.
 
-**D1** 存储关系型元数据：用户、房间、收藏、认证会话。这些是需要跨域查询的内容（比如"用户加入的所有房间"或"收藏的房间"）。
+Even so, better-auth is heavy for that budget. Measured with `wrangler tail` on the Free plan, upgrading `/ws` through `auth.api.getSession` took 31–51 ms of CPU on a warm isolate. The platform tolerated it, but that's not something to rely on for the hottest path in the app, the one every reconnect goes through. So the Worker first verifies better-auth's compact session cookie cache directly: one HMAC, no better-auth initialization, no D1 read. That brought the upgrade down to 5–11 ms. Only when the five-minute cache has expired does it fall back to a real session lookup.
 
-**Durable SQLite** 存储每个房间的消息。每个 Room DO 都拥有自己内嵌的 SQLite 数据库，就位于处理该房间 WebSocket 连接的计算资源旁边。
+Two more choices keep D1 quiet. Sessions are renewed at most once a day, so an active session costs at most one D1 write a day. And device management bypasses better-auth entirely: removing a device has the `UserDO` delete that session's row in D1 directly and close the device's socket in the same step. Because a removed session's cookie cache can still pass the Worker's check for up to five minutes, the `UserDO` keeps a record of removed devices and immediately closes any connection from one.
 
-两者都用 Drizzle ORM，但配置独立：
+## What a Day Costs
 
-```typescript
-// D1 配置：用户、房间、认证
-export default defineConfig({
-  dialect: 'sqlite',
-  driver: d1Http(migrationsFolder),
-  schema: './server/src/lib/schema.ts',
-  out: './server/drizzle/d1',
-});
+Put the per-operation costs together and you can estimate capacity. Assume 100 daily active users, each sending 30 private messages, plus five full 20-member groups exchanging 200 messages each per day, plus read receipts, typing, connections and presence:
 
-// Durable SQLite 配置：每个房间的消息
-export default defineConfig({
-  dialect: 'sqlite',
-  driver: durableSqlite(migrationsFolder),
-  schema: './server/src/lib/do-schema.ts',
-  out: './server/drizzle/room',
-});
-```
+| Item | DO requests | DO rows written |
+| --- | --- | --- |
+| 3,000 private messages | 6,150 | 12,000 |
+| 1,000 group messages | 20,050 | 22,000 |
+| ~1,300 read receipts | 2,700 | 3,900 |
+| ~4,000 typing events | ~6,000 | 0 |
+| ~1,000 connections | 1,000 | ~1,000 |
+| ~3,600 presence renewals | ~11,000 | 0 |
+| **Total** | **~47,000 / 100,000** | **~39,000 / 100,000** |
 
-权衡很明确：我没法轻松跑跨房间查询，比如"用户 X 在所有房间里的全部消息"。但对于聊天应用来说，你几乎从不需要这种查询。你真正需要的是快速、可靠的按房间消息历史，配合基于游标的分页：
+So the free plan can support a small community of roughly **100–200 daily active users**. Group fan-out hits the limit first, but the 20-member cap keeps it bounded. Past that, the first knobs are longer throttling intervals for read receipts, typing and presence renewals. After that comes Workers Paid at $5 a month, which raises the row-write allowance to 50 million a month without changing anything in the architecture.
 
-```typescript
-const messages = await db
-  .select()
-  .from(messagesTable)
-  .where(lt(messagesTable.createdAt, before))
-  .orderBy(desc(messagesTable.createdAt))
-  .limit(25);
-```
+## A Local-First Client
 
-每页 25 条消息，用户上滑时加载下一页。通过 `IntersectionObserver` 监听哨兵元素触发下一页加载，并保留滚动位置，确保阅读流不会跳动。
+The server design keeps costs bounded. The client design is what makes the app feel fast, and it also moves some costs off the server entirely.
 
-这种双数据库模式我会再用到任何数据天然按实体分区的应用中。房间消息归房间所有，用户元数据归共享存储。
+The client keeps its data in **SQLite compiled to WASM, stored on OPFS** with the `opfs-sahpool` VFS, running in a dedicated worker. The UI reads only from that local database; the network layer's only job is to sync server data into it. Opening the app or switching chats never waits for the network, and everything already synced is readable offline.
 
-## 无需信令服务器的语音通话
+A few pieces make it work across tabs:
 
-给聊天应用加语音通话通常意味着要搭建一个 WebRTC 信令服务器。但当每个房间本身就是一个有状态服务器、与每个参与者保持持久 WebSocket 连接时，你已经有信令通道了。
+- **One leader tab.** Every tab requests the same Web Lock; whichever gets it starts the sync worker, which owns the local database and the one WebSocket. Other tabs talk to it over `BroadcastChannel`. When the leader closes, the lock passes to the next tab, which takes over. One origin, one connection, no matter how many tabs are open.
+- **Why not a SharedWorker?** OPFS synchronous access handles, which SQLite's fast VFS depends on, are available only in dedicated workers.
+- **Reactive queries.** After each transaction, the sync worker broadcasts which topics changed (`dialogs`, `chat:{id}` and so on), and a roughly 100-line `useLiveQuery` hook built on `useSyncExternalStore` re-runs only the queries that care. No state management library.
+- **An outbox.** Sending writes to a local outbox and renders optimistically. Each send carries a `random_id`, and the `ChatDO` deduplicates on it, so retries and replays after a leader handoff are safe.
 
-我用 Cloudflare RealtimeKit 作为 SFU（选择性转发单元），并用 [partytracks](https://github.com/nickstenning/partytracks) 把 SFU 协议封装成基于 RxJS 的 API。Peer 之间的协调全部通过现有的聊天 WebSocket 完成。
+The biggest server-side saving is **search**. Full-text search on the server would need FTS shadow tables, which multiply row writes on every message, and row writes are the tightest quota. Instead, search runs on the device with SQLite's FTS5 `trigram` tokenizer, which also handles substring search in Chinese. The server does no full-text search at all.
 
-流程是这样的：
+The cost is client complexity: a sync state machine, gap detection when sequence numbers skip, leader handoff, and recovering when the browser clears OPFS out from under a running worker.
 
-1. 用户点击"加入通话" -> 客户端通过聊天 WebSocket 发送 `realtimeJoin`
-2. Durable Object 向所有已连接客户端广播 `realtimeStatus`
-3. 每个客户端的 `PartyTracks` 实例把它的音频轨道推送到 SFU
-4. 当轨道就绪时，客户端发送 `realtimeUpdate`，附带 session ID 和轨道名
-5. 其他客户端收到更新后拉取对应的音频轨道
+## Media Without a Media Server
 
-```typescript
-// 客户端在音频轨道就绪时发送
-ws.send(JSON.stringify({
-  type: 'realtimeUpdate',
-  sessionId: session.id,
-  trackName: track.name,
-}));
-```
+The Worker never touches media bytes, and neither does any image service.
 
-没有单独的信令服务器，也没有 SIP，聊天房间的 WebSocket 连接同时充当了 WebRTC 信令通道。Durable Object 协调整个过程，因为它本来就知道谁在线。
+- **Processing happens in the browser.** Images are scaled with `OffscreenCanvas` and encoded as WebP (JPEG on Safari). Videos are transcoded to H.264/AAC MP4 with WebCodecs in a web worker, or just remuxed when they already qualify. Voice messages are recorded as Opus, and their duration and waveform are computed on the device. A ThumbHash of about 25 bytes is inlined into the message, so placeholders render before anything downloads.
+- **Uploads go straight to R2.** The Worker only signs presigned PUT URLs, multipart included.
+- **Downloads come from R2's custom domain.** Object keys are random 128-bit values and never change, so they're cached as `immutable` at the CDN. Viewing media costs no Worker requests, and a cache hit costs no R2 operations either. The access model is a capability URL: anyone with the URL can read it. Content that needs to stay private belongs in a secret chat.
 
-### 真正有效的降噪
+Presigned uploads raise one question: what about files that are uploaded but never sent? Signing goes through no Durable Object, so nothing knows which uploads were abandoned. Keeping a ledger in the `UserDO` would cost about two row writes per batch, and a mark-and-sweep Workflow would have to scan every chat and could delete live media if it missed one.
 
-浏览器里原始的麦克风音频听起来很糟糕。键盘敲击声、风扇噪声、背景人声。我集成了 Jitsi 基于 RNNoise 的 AudioWorklet 处理器，在音频流送到 SFU 之前先做净化：
+Instead, uploads land in a pending prefix, `p/{user_id}/…`. When the message is sent, the `UserDO` copies each object to the same path under `m/` and then hands it to the `ChatDO`. An R2 lifecycle rule deletes anything under `p/` after seven days. The copy costs an extra Class A operation per object, which is a quota I have plenty of, and it costs zero row writes, which is the quota I don't.
 
-```typescript
-const noiseSuppressedStream = await applyNoiseSuppression(mediaStream);
-const audioTrack = noiseSuppressedStream.getAudioTracks()[0];
-await partyTracks.push(of(audioTrack));
-```
+## Calls
 
-Safari 不支持基于 AudioWorklet 的变换，所以会回退到浏览器内建的 `noiseSuppression`、`echoCancellation` 和 `autoGainControl` 约束。效果不如 RNNoise，但聊胜于无。
+Calls use Cloudflare Realtime, and the free allowance there is 1,000 GB of egress a month, shared between the SFU and TURN. That makes two very different media paths worth their complexity:
 
-## 内容寻址的图片上传
+- **One-to-one calls go peer-to-peer.** Signaling travels over the WebSocket that's already open, through the two `UserDO`s. ICE uses Cloudflare's STUN and TURN, with short-lived TURN credentials signed by the Worker. When the two peers can connect directly, no media passes through Cloudflare at all, and the minutes cost nothing.
+- **Strangers get a relay.** If the other person isn't in my contacts, my side forces `iceTransportPolicy: 'relay'`, so they never learn my network address.
+- **Group calls go through the Realtime SFU.** A full mesh for up to 20 people would mean uploading 19 streams each. Room state (who's in, which tracks are published) lives in the group's `ChatDO`. Video uses simulcast: the grid pulls a low layer, and only the enlarged tile or screen share pulls the high one.
 
-聊天应用里的图片上传通常遵循这样的模式：上传到服务器、服务器存到对象存储、服务器返回 URL。这是三次跳转，服务器会沦为处理大图片的瓶颈。
+For a sense of scale: a one-to-one video call is about 1.5 Mbps per direction, so a fully relayed hour is about 1.35 GB, and a voice-only hour about 36 MB. A five-person group call with every camera on in the grid comes to about 4.5 GB an hour.
 
-我构建了一条内容寻址的流水线，在存储层对图片做去重：
+## Secret Chats with MLS
 
-1. 客户端用 Canvas API 把图片转成 WebP（更小的文件、统一的格式）
-2. 客户端用 `crypto.subtle.digest` 计算文件的 SHA-256 哈希
-3. 客户端把哈希列表发给服务器，请求预签名上传 URL
-4. 服务器按哈希键在 R2 中检查是否已有对象。如果完全相同的图片已存在，就返回 `url: null`，无需上传
-5. 如果是新图，服务器用 `aws4fetch`（AWS Signature V4 签名）生成预签名 PUT URL
-6. 客户端直接上传到 R2
+Secret chats are end-to-end encrypted one-to-one chats, and unlike Telegram's they work across all of your devices. The protocol is MLS (RFC 9420), via the `ts-mls` library. Each device is a leaf in the MLS group.
 
-```typescript
-// 服务器在签发预签名 URL 前检查重复
-const existing = await env.R2.head(hash);
-if (existing) {
-  return { hash, url: null }; // 已存储
-}
-const presignedUrl = await signRequest({
-  method: 'PUT',
-  bucket: env.R2_BUCKET,
-  key: hash,
-});
-```
+- **Existing devices add new ones.** Each device leaves a few one-time KeyPackages in its `UserDO`. When a new device appears, the first member device online commits an Add for it. A device can read only messages from after it joined.
+- **MLS manages membership and keys, not every message.** For each epoch, devices derive a key from the MLS exporter and encrypt messages, edits and reactions with AES-GCM, signed with the sending device's leaf key. Because the same ciphertext can be decrypted more than once, edits, reactions, pagination and sync all work exactly the way they do for normal messages.
+- **The server stores ciphertext like any other message.** It's stored in the secret chat's `ChatDO`, with the same `seq`, `chat_pts` and incremental sync. Deleting ciphertext after every device confirms would double the writes per message and need a cursor per device, for no real gain, since MLS deletes used keys anyway.
+- **All MLS operations run in the client's sync worker.** The server only stores, orders and checks the metadata needed to keep leaves in line with the device list, which also keeps it well inside the Worker's 10 ms of CPU.
+- **A safety code covers server trust.** I trust the device list the server provides, and back it with a 60-digit code computed from every device's public key. It changes whenever a device joins, and a service message announces it.
 
-图片通过 `/room/images/:key` 提供，附带 `public, max-age=31536000, immutable` 缓存头。因为键是内容哈希，同一张图片始终映射到同一个 URL，CDN 可以永久缓存。
+Two honest caveats: `ts-mls` hasn't been formally audited, and within an epoch there's no per-message forward secrecy. Plaintext exists only on devices, so a device that loses its local data can't recover its history and gets added back as a new device.
 
-消息本身只存储 SHA-256 哈希的 JSON 数组。客户端在渲染时把它们解析成图片 URL。这意味着即使消息包含多张图片，消息体依然很小。
+## What I Gave Up
 
-## 用 Idle Detection API 实现用户在线状态
+Fitting in the free plan meant choosing what not to build:
 
-绿/灰在线指示器是聊天应用的标配，但大多数都不准。多数实现只检查"WebSocket 是否连接"，这意味着即使你离开电脑，也会显示在线。
+- **No channels, and groups of at most 20.** This is what keeps write fan-out bounded.
+- **Latest evergreen browsers only.** OPFS, WebCodecs and Document Picture-in-Picture are used directly, with no fallbacks.
+- **Forward-only migrations.** Since 1.0, schemas on the server and in the local database only gain migration steps. A release that changes a schema can't be rolled back, and when the protocol changes incompatibly, old clients reload.
+- **Media URLs are capabilities.** Anyone with the URL can read the file.
+- **Normal chats trust Cloudflare**, and so do group calls, whose media is decrypted at the SFU. Content that needs end-to-end encryption goes in a secret chat.
+- **No automatic quota alerts.** As of October 2026, Cloudflare offers no free-plan usage alerts that cover Durable Object metrics, so I watch `rows_written` and `requests` by hand.
 
-我用 [Idle Detection API](https://developer.mozilla.org/en-US/docs/Web/API/Idle_Detection_API)（目前仅 Chrome 和 Edge 支持）来检测真实的用户活动：
+## Try It or Deploy Your Own
 
-```typescript
-const controller = new IdleDetector();
-controller.addEventListener('change', () => {
-  ws.send(JSON.stringify({
-    type: 'status',
-    userIdleStatus: controller.userState,    // 'active' 或 'idle'
-    screenIdleStatus: controller.screenState, // 'locked' 或 'unlocked'
-  }));
-});
-await controller.start({ threshold: 60000 }); // 60 秒
-```
+There's a live instance at [chat.jaze.top](https://chat.jaze.top), and the code is at [Jazee6/web-chat](https://github.com/Jazee6/web-chat).
 
-头像徽章在活跃时显示绿色、空闲时黄色、锁屏时灰色。这是个细节，但它让在线状态指示器真正有用，而不只是装饰。
-
-## 用 Document Picture-in-Picture 实现多任务
-
-[Document Picture-in-Picture API](https://developer.mozilla.org/en-US/docs/Web/API/Document_Picture-in-Picture_API) 可以把整个网页弹出到一个浮动窗口里，而不只是视频元素。我用它让用户在其他标签页工作时，依然能看到聊天房间：
-
-```typescript
-const pipWindow = await documentPictureInPicture.requestWindow({
-  width: 400,
-  height: 600,
-});
-// 把样式复制到 PiP 窗口
-for (const sheet of document.styleSheets) {
-  const style = document.createElement('style');
-  style.textContent = Array.from(sheet.cssRules)
-    .map(rule => rule.cssText)
-    .join('');
-  pipWindow.document.head.appendChild(style);
-}
-// 把 React 组件渲染到 PiP 窗口
-const root = createRoot(pipWindow.document.body);
-root.render(<Room {...props} />);
-```
-
-这仍是实验特性（仅 Chrome 支持），但对聊天应用来说是杀手级功能。你能得到一个功能完整的浮动聊天窗口，而不是缩水版的小视图。
-
-## 前端技术栈
-
-客户端是 React 19，通过 `babel-plugin-react-compiler` 启用了 React Compiler。这带来了自动 memoization，无需手动用 `useMemo` 和 `useCallback` 包裹组件。开发时少一件事要操心，性能也始终不错。
-
-状态管理上，服务端状态用 TanStack Query v5（用无限查询做分页房间列表），实时连接用 `ahooks/useWebSocket` 并自动重连。`ky` HTTP 客户端透明地处理认证跳转。
-
-样式是 Tailwind CSS 4 配合 Shadcn 风格的组件原语。整个项目用 Vite 8 构建，作为静态站点部署。
-
-## 如果重来我会怎么做
-
-**跨房间搜索很难。** 因为消息分散在每个房间的 Durable SQLite 实例里，没有单一的数据库可以做全文搜索。如果需要全局搜索，要么逐个房间查询（代价高），要么维护一个独立的搜索索引（复杂）。目前按房间历史搜索已经够用。
-
-**WebSocket 状态恢复很微妙。** 当 Durable Object 休眠又唤醒时，WebSocket 连接会存活，但你需要小心地从 `deserializeAttachment()` 恢复 session 状态。我在这方面调试的时间比预期长得多。文档是有的，但边界情况文档不足。
-
-**partytracks 的补丁。** 我不得不给 `partytracks@0.0.55` 打补丁，给它的内部 fetch 调用加上 `credentials: 'include'`。这个库默认不发送 cookie，当通过自己的服务器代理时会破坏认证。Bun 的 patch 系统让这件事很简单，但这是个依赖上的小瑕疵。
-
-**浏览器兼容性是真实的约束。** Idle Detection、Document PiP 和 AudioWorklet 降噪都是 Chrome 独占。Safari 和 Firefox 用户会得到降级的体验。这就是活在最前沿的代价。
-
-## 技术栈一览
-
-| 层级 | 技术 |
-|-------|-----------|
-| 计算 | Cloudflare Workers + Hono |
-| 房间状态 | Durable Objects + Durable SQLite |
-| 全局数据 | Cloudflare D1 |
-| 文件存储 | Cloudflare R2 |
-| 语音 | Cloudflare RealtimeKit (SFU) |
-| 认证 | better-auth + OAuth PKCE |
-| 前端 | React 19、React Compiler、Vite 8、Tailwind CSS 4 |
-| ORM | Drizzle（同时用于 D1 和 Durable SQLite） |
-
-所有东西都跑在 Cloudflare 的边缘网络上，并启用了 smart placement，所以 Worker 会自动与它通信的 D1 数据库和 Durable Objects 协同部署在同一区域。
-
-## 试用或自建
-
-源码位于 [github.com/Jazee6/web-chat](https://github.com/Jazee6/web-chat)，在线演示在 [chat.jaze.top](https://chat.jaze.top)。
-
-如果你正在构建实时功能、考虑 Cloudflare 平台，关键洞察是：Durable Objects 不只是带 WebSocket 的键值存储。它们是真正的有状态服务器，能持有复杂数据结构、运行内嵌数据库、协调多方实时会话。从"无状态 API + 外部状态"到"房间即服务器"的心智模型转变需要一些适应，但一旦想通，所有东西都会简化。
+The repository has a **Deploy to Cloudflare** button: it copies the repo into your GitHub or GitLab account, creates the D1 database, R2 bucket and Durable Objects, runs the migrations and deploys. You'll need an OpenID Connect provider to sign in with; I use [Easy Auth](/posts/easy-auth), my identity provider that also runs on Workers and D1.
