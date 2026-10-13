@@ -27,8 +27,8 @@ async function findLaunchOptions(): Promise<LaunchOptions> {
         }
     }
     throw new Error([
-        "Mermaid 渲染需要一个 Chromium 内核浏览器：请安装 Microsoft Edge 或 Google Chrome，",
-        "或运行 `bunx playwright install chromium`。",
+        "Rendering Mermaid diagrams needs a Chromium-based browser: install Microsoft Edge or Google Chrome,",
+        "or run `bunx playwright install chromium`.",
         ...failures,
     ].join("\n"));
 }

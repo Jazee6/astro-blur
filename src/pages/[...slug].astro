@@ -11,7 +11,7 @@ export async function getStaticPaths() {
     return pages.map((page) => {
         const conflict = getReservedPathConflict(page.id);
         if (conflict) {
-            throw new Error(`独立页面 ${page.filePath ?? page.id} 的路径无效：${conflict}，请重命名该文件`);
+            throw new Error(`Invalid page path ${page.filePath ?? page.id}: ${conflict}. Rename the file.`);
         }
         return {
             params: {slug: page.id},

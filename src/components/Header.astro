@@ -1,6 +1,7 @@
 ---
 import {siteConfig, navBarConfig} from "../config";
 import {Icon} from 'astro-icon/components'
+import {t} from "../utils/i18n";
 ---
 
 <header class="fixed h-16 w-full blur-global z-10">
@@ -20,7 +21,7 @@ import {Icon} from 'astro-icon/components'
             }
         </nav>
         <div class="relative ml-auto hidden max-sm:flex">
-            <button id="menu" class="icon-button" aria-label="更多菜单" aria-expanded="false" aria-controls="menu-dropdown">
+            <button id="menu" class="icon-button" aria-label={t.menu} aria-expanded="false" aria-controls="menu-dropdown">
                 <Icon class="w-6 h-6 m-auto" name="material-symbols:menu-rounded"/>
             </button>
             <nav id="menu-dropdown"
@@ -40,10 +41,10 @@ import {Icon} from 'astro-icon/components'
                 }
             </nav>
         </div>
-        <button id="search" class="ml-4 icon-button" aria-label="搜索">
+        <button id="search" class="ml-4 icon-button" aria-label={t.search}>
             <Icon class="block w-6 h-6 m-auto" name="material-symbols:search-rounded"/>
         </button>
-        <button id="theme" class="ml-2 max-sm:ml-4 icon-button" aria-label="切换主题模式">
+        <button id="theme" class="ml-2 max-sm:ml-4 icon-button" aria-label={t.themeToggle}>
             <Icon class="hidden in-data-[theme-mode=system]:block w-6 h-6 m-auto" name="material-symbols:computer-outline-rounded"/>
             <Icon class="hidden in-data-[theme-mode=light]:block w-6 h-6 m-auto" name="material-symbols:light-mode-outline-rounded"/>
             <Icon class="hidden in-data-[theme-mode=dark]:block w-6 h-6 m-auto" name="material-symbols:dark-mode-outline-rounded"/>

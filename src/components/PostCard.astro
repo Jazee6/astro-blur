@@ -1,12 +1,14 @@
 ---
 import {siteConfig} from "../config";
 import type {CollectionEntry} from 'astro:content';
+import {contentLang} from "../utils/i18n";
 
 interface Props {
     post: CollectionEntry<'posts'>;
 }
 
 const {post} = Astro.props;
+const lang = contentLang(post.data.lang);
 ---
 
 <li>
@@ -18,10 +20,10 @@ const {post} = Astro.props;
                 aria-hidden="true"
             />
         )}
-        <h2 class="text-xl font-bold line-clamp-1">
+        <h2 class="text-xl font-bold line-clamp-1" lang={lang}>
             {post.data.title}
         </h2>
-        <p class="line-clamp-2">
+        <p class="line-clamp-2" lang={lang}>
             {post.data.description}
         </p>
         <div class="mt-auto flex items-center">

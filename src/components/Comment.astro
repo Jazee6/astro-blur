@@ -1,10 +1,11 @@
 ---
 import {siteConfig} from "../config";
+import {t} from "../utils/i18n";
 ---
 
 {siteConfig.twikooUri && (
     <div class="bg-base rounded-xl px-6 pt-2 pb-4 mt-4">
-        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2" role="status" aria-label="评论加载中" data-twikoo-uri={siteConfig.twikooUri}></div>
+        <div id="comment" class="h-64 animate-pulse bg-back rounded-xl mt-2" role="status" aria-label={t.commentsLoading} data-twikoo-uri={siteConfig.twikooUri} data-unavailable={t.commentsUnavailable}></div>
     </div>
 )}
 
@@ -19,10 +20,10 @@ import {siteConfig} from "../config";
 
     if (container && twikooUri) {
         const markUnavailable = (error: unknown) => {
-            console.error("Twikoo 评论加载失败：", error);
+            console.error("Failed to load Twikoo comments:", error);
             container.classList.remove("h-64", "animate-pulse", "bg-back");
             container.removeAttribute("aria-label");
-            container.textContent = "评论暂不可用";
+            container.textContent = container.dataset.unavailable ?? "";
         };
 
         const markAvailable = () => {
@@ -40,7 +41,7 @@ import {siteConfig} from "../config";
         script.onload = () => {
             const twikoo = (window as {twikoo?: {init: (options: Record<string, unknown>) => Promise<unknown>}}).twikoo;
             if (typeof twikoo?.init !== "function") {
-                markUnavailable(new Error("Twikoo UMD 全局对象不可用"));
+                markUnavailable(new Error("The Twikoo UMD global is unavailable"));
                 return;
             }
             try {
@@ -53,7 +54,7 @@ import {siteConfig} from "../config";
                 markUnavailable(error);
             }
         };
-        script.onerror = () => markUnavailable(new Error(`无法加载 ${TWIKOO_SRC}`));
+        script.onerror = () => markUnavailable(new Error(`Failed to load ${TWIKOO_SRC}`));
         document.head.appendChild(script);
     }
 </script>
