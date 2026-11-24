@@ -2,9 +2,8 @@
 title: Meta Quest 2 VR 简评+指南
 description: Meta Quest 2 VR 简评+指南
 pubDate: 2022-02-15
-heroImage: https://blog-cdn.jaze.top/2024/01/662f4075c7e940799a48a97e284a9307.webp
+heroImage: https://blog-cdn.vuiki.com/2024/01/662f4075c7e940799a48a97e284a9307.webp
 tags: ["VR", "Hardware", "Gaming"]
-lang: zh
 ---
 
 ## 故事
@@ -38,21 +37,21 @@ Nintendo Switch？创意不错，能带着走，还能连接TV。不过17年的�
 
 ## 开箱
 
-![](https://blog-cdn.jaze.top/2024/01/c037b566d77093498b26cdd42dfd0567.webp)
+![](https://blog-cdn.vuiki.com/2024/01/c037b566d77093498b26cdd42dfd0567.webp)
 
 就剩这图了
 
 ## 外观
 
-![](https://blog-cdn.jaze.top/2024/01/662f4075c7e940799a48a97e284a9307.webp)
+![](https://blog-cdn.vuiki.com/2024/01/662f4075c7e940799a48a97e284a9307.webp)
 
 含4颗黑白摄像头
 
-![](https://blog-cdn.jaze.top/2024/01/8c472ebd2503692415c64ba8f74303f9.webp)
+![](https://blog-cdn.vuiki.com/2024/01/8c472ebd2503692415c64ba8f74303f9.webp)
 
 熟悉的ABXY
 
-![](https://blog-cdn.jaze.top/2024/01/9c1ac5ed564943a358857e00563a7526.webp)
+![](https://blog-cdn.vuiki.com/2024/01/9c1ac5ed564943a358857e00563a7526.webp)
 
 侧边键 模拟抓握
 
@@ -64,7 +63,7 @@ Nintendo Switch？创意不错，能带着走，还能连接TV。不过17年的�
 
 可以佩戴眼镜游玩，眼镜放不进去的话还能套一个附赠的眼镜支架，TB上也有定制读书的磁吸镜片，同样是100RMB左右。
 
-![](https://blog-cdn.jaze.top/2024/01/5db0a5a3726b89afcf4023ea8ff8b93f.webp)
+![](https://blog-cdn.vuiki.com/2024/01/5db0a5a3726b89afcf4023ea8ff8b93f.webp)
 
 鼻子部分的凹槽没有针对国人设计，鼻子不够高还是会轻微漏光。
 
@@ -78,17 +77,17 @@ Nintendo Switch？创意不错，能带着走，还能连接TV。不过17年的�
 
 音质：扬声器虽然小，但音质意外的不错，能感觉到空气在被推动（物理）
 
-![](https://blog-cdn.jaze.top/2024/01/df8abfa07c427e78f28e9d2d698289f0.webp)
+![](https://blog-cdn.vuiki.com/2024/01/df8abfa07c427e78f28e9d2d698289f0.webp)
 
 _Unplugged VR_
 
 支持手势识别，即不用手柄也能操控设备，畅玩部分游戏。如上面这款_Unplugged_。
 
-![](https://blog-cdn.jaze.top/2024/01/2fa3255848fe9b444d060cb65e49d51a.webp)
+![](https://blog-cdn.vuiki.com/2024/01/2fa3255848fe9b444d060cb65e49d51a.webp)
 
 _Apollo 11 VR_ 对接
 
-![](https://blog-cdn.jaze.top/2024/01/dbacde0150fc45b33606d2a8dec103a8.webp)
+![](https://blog-cdn.vuiki.com/2024/01/dbacde0150fc45b33606d2a8dec103a8.webp)
 
 _Takagi san VR_ 互动
 
@@ -96,11 +95,11 @@ _Takagi san VR_ 互动
 
 Skybox VR还不错，支持串流/局域网/本地，看普通视频也带劲（大屏+类似空间音频）。
 
-![](https://blog-cdn.jaze.top/2024/01/8b567097095baf3089ba6863742413f3.webp)
+![](https://blog-cdn.vuiki.com/2024/01/8b567097095baf3089ba6863742413f3.webp)
 
 _Sono Bisque Doll wa Koi o Suru_
 
-![](https://blog-cdn.jaze.top/2024/01/398670feb286f28636d96e0f010a8dd1.webp)
+![](https://blog-cdn.vuiki.com/2024/01/398670feb286f28636d96e0f010a8dd1.webp)
 
 场景选择
 
@@ -130,7 +129,7 @@ _Sono Bisque Doll wa Koi o Suru_
 思路：申请开发者权限[https://www.yuque.com/oculus-helper/start/developer](https://www.yuque.com/oculus-helper/start/developer)\->
 打开开发者模式->连接电脑->ADB Connect 或者使用 SideQuest安装
 
-![](https://blog-cdn.jaze.top/2024/01/4881dbced3c215d333b56ad230744d82.webp)
+![](https://blog-cdn.vuiki.com/2024/01/4881dbced3c215d333b56ad230744d82.webp)
 
 [https://sidequestvr.com/](https://sidequestvr.com/)
 
@@ -141,7 +140,7 @@ _Sono Bisque Doll wa Koi o Suru_
 PC：可以使用Oculus官方的网页投屏 [https://www.oculus.com/casting](https://www.oculus.com/casting) 还有ADB
 scrcpy或者SideQuest均可
 
-![](https://blog-cdn.jaze.top/2024/01/9215516a4ca2f9e38148f1ff38fbc83f.webp)
+![](https://blog-cdn.vuiki.com/2024/01/9215516a4ca2f9e38148f1ff38fbc83f.webp)
 
 Web Cast
 
@@ -180,22 +179,22 @@ Web Cast
 
 可以安装Clash更新系统，部分流量不能代理。
 
-![](https://blog-cdn.jaze.top/2024/01/4259beec6a1041a8ebaa200a6e77fe3f.webp)
+![](https://blog-cdn.vuiki.com/2024/01/4259beec6a1041a8ebaa200a6e77fe3f.webp)
 
 ## 总结
 
 作为入门级别VR设备来说确实很值得购买，它支持有线/无线串流Steam VR，或是在其内部空间直接安装游戏。可能小小的阻碍就是科学上网了吧。
 
-![](https://blog-cdn.jaze.top/2024/01/87c6fae4b4b0f07ce32a1a967f21134f.webp)
+![](https://blog-cdn.vuiki.com/2024/01/87c6fae4b4b0f07ce32a1a967f21134f.webp)
 
 美亚128
 
-![](https://blog-cdn.jaze.top/2024/01/02370a99bcfac6f95ce84c89d6bb4b54.webp)
+![](https://blog-cdn.vuiki.com/2024/01/02370a99bcfac6f95ce84c89d6bb4b54.webp)
 
 日亚128
 
 ## 后记
 
-![](https://blog-cdn.jaze.top/2024/01/24f922310fa9d5f71116320da09be84b.webp)
+![](https://blog-cdn.vuiki.com/2024/01/24f922310fa9d5f71116320da09be84b.webp)
 
 离Meta还有多远？

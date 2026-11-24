@@ -1,53 +1,51 @@
 ---
-title: "Running a Full OAuth 2.1 Authorization Server on Cloudflare Workers and D1: How Easy Auth Was Built"
-description: "Building a self-hosted, OAuth 2.1 / OIDC-compliant identity provider on Cloudflare Workers, D1 and TanStack Start with no always-on costs, and the engineering decisions behind explicit identity linking, session caching and Passkey boundaries."
+title: "零服务器费用跑一套 OAuth 2.1 认证中心，Easy Auth 在 Cloudflare Workers 和 D1 上的踩坑实录"
+description: "花两个月把完整的 OAuth 2.1 与 OIDC 身份提供方搬上 Cloudflare Workers、D1 和 TanStack Start，拆解显式账号绑定、双层会话缓存、Passkey 域名锁死以及异步发信踩过的坑。"
 pubDate: 2026-09-06
 author: "Jazee"
 tags: ["Cloudflare", "OAuth", "Better Auth", "TanStack", "Security"]
 ---
 
-If you want a single sign-on system for several independent projects, most open-source options push you toward an always-on VM running Java or Postgres, while commercial SaaS products push you into an enterprise plan costing hundreds of dollars a month the moment you need to issue OAuth tokens across apps.
+手头只要攒出三四个独立项目，单点登录这事迟早找上门。
 
-I spent two months moving a complete authorization server onto Cloudflare Workers and D1. No always-on containers, no Redis, nothing but Cloudflare's edge network, and a monthly server bill of zero.
+一圈挑下来，主流开源方案比如 Keycloak、Zitadel、Ory Hydra，个个都得配一台常驻虚拟机，跑着 Java 或 Postgres。哪怕一个月只有两百次登录，CPU 和内存照样二十四小时烧着钱。去看商业 SaaS 吧，一旦你想跨应用签发 OAuth 令牌，账单立马蹦到几百美元一个月的企业版。
 
-But moving a system full of cryptographic signatures, WebAuthn ceremonies and strict session control into a stateless edge runtime turned up far more pitfalls than I expected. This post walks through the architecture of [Easy Auth](https://github.com/Jazee6/easy-auth) (live demo: [account.jaze.top](https://account.jaze.top)) and the specific trade-offs I made between security and edge performance.
+我不太服气，花了两个月，把一套完整的授权服务器硬生生搬上了 Cloudflare Workers 和 D1。没有常驻容器，没有 Redis，全跑在 Cloudflare 边缘网络上，每个月服务器账单正好是零。
 
-## Why Framework Auth Wasn't Enough
+不过真动起手来才发现，把一堆密码学签名、WebAuthn 认证流程和严格会话控制塞进无状态边缘运行时里，脚底下的坑比预想多得多。线上演示跑在 [account.vuiki.com](https://account.vuiki.com)，源码在 [Easy Auth](https://github.com/Jazee6/easy-auth)，下面结合真实代码聊聊我踩过的坑和做过的取舍。
 
-The first instinct of many front-end developers is NextAuth (Auth.js) or a similar framework library.
+## 为什么框架自带的登录库不够用
 
-But there is a fundamental distinction here: an in-app session library is not an authorization server.
+很多前端碰到认证需求，第一反应都是装个 NextAuth，现在叫 Auth.js，或者类似的框架登录库。
 
-If you only have one website, tracking sign-in state with a session cookie is all you need.
+如果手里只有一个网站，拿 session cookie 记一下登录状态完全够使。可一旦业务长出三个以上独立域名，或者冒出手机端和桌面客户端，这套玩法马上就散架了。你总不能把用户密码库和数据库连接串，挨个发给每一个小项目。
 
-Once you have three or more independent domains, a mobile app or a desktop client, that model falls apart quickly. You can't hand out user passwords and database connection strings to every small project. What you need is a separate identity trust domain: a core system owns user management, TOTP verification and Passkey credentials, and outside apps act only as trusted OAuth clients, exchanging the standard OAuth 2.1 authorization code flow with PKCE for access tokens and ID tokens.
+这时候需要一块独立的身份信任域。核心系统自己攥着用户管理、TOTP 两步验证和 Passkey 凭证，外面的项目只当受信任的 OAuth 客户端，老老实实走标准的 OAuth 2.1 授权码加 PKCE 流程，换取访问令牌和 ID 令牌。
 
-The existing self-hosted options (Keycloak, Zitadel, Ory Hydra) are solid, but they're designed around always-on servers. They start slowly and use plenty of memory, and even with only two hundred sign-ins a month, you still pay for CPU and memory that are always on.
+应用内的会话库，和独立的授权服务器，干的本来就是两码事。现有的自托管方案都挺成熟，就是全围着常驻机器设计的，冷启动慢、吃内存，养一台机器就为了几百次登录实在划不来。我就想试试，无服务器边缘网络到底能不能扛住这一套。
 
-I wanted to see whether this could work on a serverless edge network.
+## 架构怎么搭，冷启动怎么压到 40 ms
 
-## Architecture and Edge Topology
+Easy Auth 跑在 Cloudflare Workers 上，唯一的持久化存储是 Cloudflare D1，底层是分布式 SQLite。
 
-Easy Auth runs on Cloudflare Workers, and its only persistent store is Cloudflare D1 (distributed SQLite).
-
-TanStack Start drives both the front end and the server. I gave up on wrapping Next.js for Workers, because TanStack Start targets the native Web Request/Response standard directly, without a bloated Node.js compatibility shim, which keeps edge cold starts consistently between 35 ms and 45 ms.
+前后端一体用了 TanStack Start。我直接放弃了把 Next.js 打包适配到 Workers 的路子，因为 TanStack Start 原生对着 Web Request 和 Response 标准写，不用背一层厚重的 Node.js 兼容垫片，边缘节点的冷启动因此稳稳压在 35 到 45 ms。
 
 ```mermaid
 flowchart TD
-    subgraph Browser ["User's browser"]
-        ClientUI["Front-end UI<br/>Passkey / password + TOTP / OAuth consent / admin console"]
+    subgraph Browser ["用户浏览器"]
+        ClientUI["前端界面<br/>Passkey、密码加 TOTP、OAuth 授权确认、管理后台"]
     end
 
-    subgraph Edge ["Cloudflare edge network (Workers)"]
+    subgraph Edge ["Cloudflare 边缘网络 (Workers)"]
         direction TB
-        SSR["TanStack Start (SSR and API routes)"]
+        SSR["TanStack Start (SSR 与 API 路由)"]
 
-        subgraph AuthCore ["Better Auth core and security plugins"]
+        subgraph AuthCore ["Better Auth 核心与安全插件"]
             direction TB
-            OIDC["OAuth 2.1 Provider (PKCE / OIDC)"]
+            OIDC["OAuth 2.1 Provider (PKCE 与 OIDC)"]
             PasskeyMod["Passkey (WebAuthn)"]
-            TwoFactorMod["Two-Factor (TOTP / backup codes)"]
-            AdminGuard["Security Activity & Policy Guard"]
+            TwoFactorMod["两步验证 (TOTP 与恢复码)"]
+            AdminGuard["安全审计与策略守卫"]
         end
 
         Drizzle["Drizzle ORM"]
@@ -55,22 +53,20 @@ flowchart TD
         AuthCore --> Drizzle
     end
 
-    subgraph Storage ["Cloudflare D1 edge database"]
-        D1Tables["Users and credentials | Authorizations and clients<br/>Sessions and rate limits | Security activity audit"]
+    subgraph Storage ["Cloudflare D1 边缘数据库"]
+        D1Tables["用户与凭证、授权与客户端<br/>会话与限流、安全活动审计"]
     end
 
-    subgraph Apps ["Trusted external apps (OAuth clients)"]
-        ExternalApp["Web apps / SPAs / native mobile clients"]
+    subgraph Apps ["受信任的外部应用 (OAuth 客户端)"]
+        ExternalApp["Web 应用、单页应用、原生移动端"]
     end
 
-    ClientUI <-->|HTTPS interaction and authentication| SSR
-    Drizzle <-->|Strongly consistent SQL queries| D1Tables
-    ExternalApp <-->|OAuth 2.1 / OIDC authorization code and token exchange| SSR
+    ClientUI <-->|HTTPS 交互与认证| SSR
+    Drizzle <-->|强一致 SQL 查询| D1Tables
+    ExternalApp <-->|OAuth 2.1 与 OIDC 授权码换令牌| SSR
 ```
 
-To keep cold starts fast, schema migrations must never run dynamically when the Worker starts.
-
-I generate the SQL migration files locally with `drizzle-kit`, and CI or a local Wrangler applies them to D1 ahead of time, so the Worker runtime only does ordinary reads and business writes:
+为了让冷启动一直这么快，表结构迁移绝不能放到 Worker 启动时动态跑。我平时都在本地拿 `drizzle-kit` 生成好 SQL 迁移文件，发版前由 CI 或者本地 Wrangler 提前打进 D1，Worker 运行时只管干常规的查询和业务写入。
 
 ```bash
 bun run auth:generate
@@ -78,7 +74,7 @@ bun run db:generate
 bun run db:migrate:local
 ```
 
-Better Auth powers the authentication core. A factory function combines the core features with a controlled set of plugins (abridged):
+认证核心交给 Better Auth，我写了个工厂函数，把核心功能和挑出来的几个插件组装在一起，代码节选长这样。
 
 ```typescript
 // src/lib/auth-factory.ts
@@ -146,74 +142,65 @@ export function createEasyAuth({ environment }: EasyAuthFactoryOptions) {
 }
 ```
 
-The default plugin setup gets the basic flows working, but once it faces real traffic on the public internet, many of the defaults don't respect strict security boundaries.
+按默认配置装完，基本流程确实能跑起来。可一旦推到公网上接真实流量，好几个默认行为都会把安全边界撕开一条口子。下面挑几个上线前我下狠手改掉的地方细讲讲。
 
-Here are the key architectural trade-offs I made while putting it into production.
+## 为什么自动按邮箱合并账号是个后门
 
-## Why Implicit Email Merging Becomes an Account Takeover Backdoor
+不少认证库都有个默认替你省事的功能，用户拿 GitHub 登录，只要 GitHub 返回的已验证邮箱跟库里某个老账号对得上，系统就自动把两个账号合在一起，顺手把人放进去了。
 
-Many auth libraries ship with a default behavior: if a user signs in with GitHub and the verified email GitHub returns matches an existing account, the system automatically links the GitHub account to that account and signs the user in.
+用起来确实少点一下，可安全隐患大得吓人。
 
-On the surface, this is a convenience.
+各家外部身份提供方对邮箱校验的松紧程度天差地别。有的平台改主邮箱根本不用二次确认，有的老系统里藏着校验逻辑漏洞。只要你的系统敢凭外部传回来的一串同名邮箱就自动合号，攻击者在外部服务抢注或篡改同一个邮箱，就能悄无声息把合法用户的账号接管掉。
 
-In practice, it's a serious security hole.
-
-Identity providers don't all verify email the same way. Some let you change your primary email without a second confirmation; others have logic flaws in legacy systems. If the system merges accounts based on nothing more than a matching email from outside, an attacker can register the same email with an external service and silently take over a legitimate account.
-
-My architecture decision record (ADR-0001) turns implicit linking off entirely:
+我在架构决策记录 ADR-0001 里，把隐式绑定直接一刀切死了。
 
 ```typescript
 // src/lib/auth-policy.ts
 export const externalIdentityAuthPolicy = {
-  requireEmailVerification: true, // external identities must come with a verified email
-  disableImplicitLinking: true,   // never merge accounts just because the emails match
-  allowDifferentEmails: true,     // a signed-in account may explicitly link an identity with another email
+  requireEmailVerification: true, // 外部身份必须带已验证邮箱
+  disableImplicitLinking: true,   // 绝不因为邮箱相同就自动合号
+  allowDifferentEmails: true,     // 已登录账号可以主动绑定不同邮箱的外部身份
   updateUserInfoOnLink: false,
-  allowUnlinkingAll: false,       // an account must keep at least one working sign-in method
+  allowUnlinkingAll: false,       // 账号必须至少留一种可用的登录方式
   // ...
 } as const;
 ```
 
-The rules are now clear:
-1. If a user signs in with an external identity whose email no account uses yet, open registration can create a new account.
-2. If that email already belongs to an account that has never linked this external identity, the sign-in is rejected, and the user is asked to sign in with an existing credential (password or Passkey) first.
-3. The user must then go to the account panel and click "Link identity" from within that signed-in session.
+现在规则特别直白。外部身份带的邮箱在库里还没人用，开放注册就直接建新号。要是这个邮箱已经归某个老账号所有，而且从来没绑过这个外部身份，登录直接拒绝，请老老实实用原有密码或者 Passkey 先登进去，再去账号面板里自己点一下关联身份。
 
-In version 1.0.1, I went a step further and added cross-email linking.
+到了 1.0.1 版本，我顺手把跨邮箱绑定也加上了。
 
-Many developers use a personal email as their GitHub primary address but a work email on a particular system. As long as you start the linking flow from your current authenticated session, the system lets you link explicitly even if the two emails differ. The external identity's email still has to be verified, and linking never changes the account's login email. Because whoever started the flow has already proven who they are, there's no privilege escalation risk.
+很多开发者 GitHub 挂着私人邮箱，进某个系统用的却是工作邮箱。只要你在已经登录的会话里主动发起绑定，两边邮箱不一样也能绑上去。外部身份的邮箱依然必须经过验证，绑定完也不会改掉原本的登录邮箱。因为发起操作的人已经自证了身份，这里不存在越权风险。
 
-## Trading a 5-Minute Cookie Cache for SSR Speed, While Sensitive Checks Go Straight to D1
+## 五分钟 Cookie 缓存提速，敏感操作必须直查 D1
 
-In a serverless edge architecture, every D1 query adds latency to the request.
+说完绑定，再聊聊边缘架构里的性能与安全拉扯。
 
-Better Auth offers an optimization: a five-minute cookie cache. The key session fields are stored in a signed cookie on the client, and for five minutes, server routes and components can read the user straight from the cookie without querying D1.
+在 Workers 里，每次查 D1 都会给请求多垫一段网络延迟。Better Auth 自带一个五分钟的 Cookie 缓存，把关键会话字段签进客户端 Cookie 里，五分钟之内服务端路由和页面渲染直接读 Cookie，根本不用跑一趟 D1。
 
-This is great for page rendering and route transitions; navigation feels almost instant.
+切页面、跳路由的时候丝滑得像本地应用。
 
-But it also plants a time bomb.
+可这玩意同时埋了颗雷。试想有个恶意账号正在搞破坏，管理员在后台点了封禁账号或者吊销全部会话。如果全走 Cookie 缓存，这个已经被封掉的人，在接下来整整 300 秒里手里还捏着有效会话，照样能接着调接口。
 
-Suppose an abusive account is in the middle of doing damage, and an administrator clicks "Ban account" or "Revoke all sessions". Under cookie-cache logic, the banned user still counts as having a valid session for the next 300 seconds and can keep calling the API.
+对于一个身份认证中心来说，放任被封禁的账号满大街再跑五分钟，绝对不能接受。
 
-For an identity provider, letting a revoked account run free for five minutes is unacceptable.
-
-My answer is a two-tier session strategy (ADR-0005):
+我的解法是 ADR-0005 里的双层会话策略。
 
 ```mermaid
 flowchart TD
-    Req["Client HTTP request"] --> CheckType{"Request type"}
+    Req["客户端 HTTP 请求"] --> CheckType{"请求类型"}
 
-    CheckType -->|Page navigation / route shell| CachedPath["Read the 5-minute cookie cache"]
-    CachedPath --> Render["Render the page shell immediately<br/>(no D1 round trip)"]
+    CheckType -->|页面跳转与路由外壳| CachedPath["读取 5 分钟 Cookie 缓存"]
+    CachedPath --> Render["立刻渲染页面外壳<br/>(不查 D1)"]
 
-    CheckType -->|Sensitive data / API mutation / OAuth authorization| AuthPath["getAuthoritativeSession<br/>(forces disableCookieCache: true)"]
-    AuthPath --> QueryD1["Query Cloudflare D1, the authoritative store"]
-    QueryD1 --> CheckBan{"Check account status"}
-    CheckBan -->|Not banned and session valid| Allow["Allow the operation and issue the authorization"]
-    CheckBan -->|Banned or session revoked| Reject["Stop immediately with 403 Forbidden"]
+    CheckType -->|敏感数据、API 写操作、OAuth 授权| AuthPath["getAuthoritativeSession<br/>(强制 disableCookieCache 为 true)"]
+    AuthPath --> QueryD1["直查权威存储 Cloudflare D1"]
+    QueryD1 --> CheckBan{"检查账号状态"}
+    CheckBan -->|未封禁且会话有效| Allow["放行操作并签发授权"]
+    CheckBan -->|已封禁或会话失效| Reject["当场拦截返回 403 Forbidden"]
 ```
 
-Everywhere a real permission check happens, I use `getAuthoritativeSession` instead of the regular read:
+凡是真要验权的地方，一律不用普通读取，统一换上 `getAuthoritativeSession`。
 
 ```typescript
 // src/lib/authoritative-session.ts
@@ -222,7 +209,7 @@ import type { createEasyAuth } from "./auth-factory";
 type SessionAuthApi = Pick<ReturnType<typeof createEasyAuth>["api"], "getSession">;
 
 export function getAuthoritativeSession(authApi: SessionAuthApi, headers: Headers) {
-  // disableCookieCache: true must be passed explicitly to bypass the cache and hit D1
+  // 必须显式传 disableCookieCache 为 true，绕过缓存直查 D1
   return authApi.getSession({
     headers,
     query: { disableCookieCache: true },
@@ -230,25 +217,25 @@ export function getAuthoritativeSession(authApi: SessionAuthApi, headers: Header
 }
 ```
 
-Now the line is sharp: the page shell may come from the cache, but the moment you click "Authorize this new app" or "Change security settings", the system checks D1 to see whether you've been banned.
+现在界线划得很死。页面外壳可以吃缓存，保证逛起来够快，可只要你手指点下授权给新应用或者修改安全设置，后端立刻去 D1 查你有没有被封。被封的人顶多还能瞥一眼静态面板的壳子，任何带副作用的操作都干不成。
 
-A banned account might still glimpse a static dashboard, but it can never perform an operation with side effects.
+## 别信 Host 请求头，Passkey 域名必须静态锁死
 
-## Never Trust the Host Header: Why the Passkey RP ID Must Be Statically Bound
+接着看 Passkey 这块。
 
-Passkeys (WebAuthn) are cryptographically bound to domains. Every time the browser prompts for a signature, the authenticator strictly checks the Relying Party ID (RP ID) and origin.
+WebAuthn 凭证和密码学域名是绑死的，浏览器每次弹窗让你按指纹或扫脸，认证器都会死抠依赖方标识 RP ID 和 Origin 对不对得上。
 
-Many open-source examples online do this:
+网上不少开源示例图省事，直接从请求头里拿 Host。
 
 ```typescript
-// A dangerous anti-pattern: deriving the RP ID from a request header
+// 危险写法，千万别拿请求头算 RP ID
 const host = request.headers.get("host");
 const rpID = host ? host.split(":")[0] : "localhost";
 ```
 
-Behind reverse proxies, CDNs with multiple origins, or preview environments, this can open disastrous security holes. If an attacker starts a ceremony with a forged Host header, or domains get mixed up between environments, credentials may end up reused across environments.
+只要前面挂着反向代理、多源 CDN 或者预览环境，这种写法分分钟出大乱子。攻击者伪造一个 Host 头发起认证流程，或者不同环境的域名串了台，凭证就可能跨环境混用。
 
-My architecture (ADR-0006) requires the RP ID and origin to be derived statically from the server-side environment variable `BETTER_AUTH_URL`, never from any HTTP request header at runtime:
+ADR-0006 里我定了个硬规矩，RP ID 和 Origin 必须从服务端环境变量 `BETTER_AUTH_URL` 静态算出来，运行时绝不碰任何 HTTP 请求头。
 
 ```typescript
 // src/lib/passkey-policy.ts
@@ -274,21 +261,17 @@ export function derivePasskeyRpConfig(betterAuthUrl?: string): PasskeyRpConfig {
 }
 ```
 
-This locks the environment boundaries in place: local development is `localhost`, staging has its own domain, and production is `account.jaze.top`. There's no way to spoof credentials between them.
+这么一锁，三个环境的边界铁板一块，本地开发是 `localhost`，预发走预发域名，生产钉死在 `account.vuiki.com`，谁也别想跨环境造假凭证。
 
-The known cost of this decision: **if Easy Auth ever moves to a new root domain, every Passkey registered under the old domain stops working on the client.**
+代价我也提前说透，**要是哪天 Easy Auth 换了新根域名，老域名下注册过的所有 Passkey 在客户端都会全部失效**。用户得靠本地密码或者 GitHub 登进去，在新域名底下重新录一遍指纹。这个限制我直接写进文档摊开讲，跟堵死凭证伪造比起来，这点迁移成本值得认。
 
-Users have to sign in another way (local password or GitHub) and register their biometrics again under the new domain. I document this constraint openly, because preventing credential forgery is worth the cost of static binding.
+## 给 Admin 插件动刀，只留封禁和踢人
 
-## Trimming the Admin Plugin: Default-Deny for Everything but Bans and Session Revocation
+Better Auth 的 Admin 插件功能特别全，一口气提供了十几个接口，改用户资料、重设密码、扮演别人登录、改角色权限全都有。
 
-Better Auth's Admin plugin is very complete, with more than a dozen endpoints for editing users, resetting passwords, impersonation, role assignment and more.
+放在多人协作的生产后台里，把这套接口原封不动放出去，等于满地撒横向提权的后门。哪个管理员要是想搞事，调一下 `/admin/set-role` 就能给自己加权，调一下 `/admin/impersonate-user` 就能钻进别人账号里晃悠。
 
-But in a production system with several administrators, exposing that API as-is leaves countless backdoors for lateral privilege escalation.
-
-For example, an administrator could quietly promote themselves through `/admin/set-role`, or act as another user through `/admin/impersonate-user`.
-
-I enforce a strict default-deny policy in the middleware layer (ADR-0004):
+我在中间件层按 ADR-0004 做了默认全拒。
 
 ```typescript
 // src/lib/admin-policy.ts
@@ -310,7 +293,7 @@ const directAdminPluginPaths = new Set([
   "/admin/has-permission",
 ]);
 
-// In production, administrators get only four critical enforcement actions
+// 生产环境里，管理员只拿到四个核心处置动作
 export function isAllowedDirectAdminPluginPath(path: string | undefined): boolean {
   return (
     path === "/admin/ban-user" ||
@@ -321,81 +304,75 @@ export function isAllowedDirectAdminPluginPath(path: string | undefined): boolea
 }
 ```
 
-Any Admin plugin endpoint that isn't on the list is stopped with 403 Forbidden as soon as the request reaches the middleware.
+名单以外的 Admin 接口，请求刚进中间件就被 403 Forbidden 拍回去了。
 
-I also split accounts into regular accounts and administrator accounts. Administrators can ban regular accounts and sign out their devices, but if the target is itself an administrator, the endpoint refuses. Acting on an administrator account has to be done by hand by an operator with low-level access to the D1 database.
+账号也分了普通用户和管理员两层。管理员能封禁普通账号、踢掉他们的登录设备，可目标一旦也是管理员，接口直接拒掉。想动管理员账号，只能由手里有 D1 底层权限的运维亲自出手。后台页面里展示的用户列表全靠手写 Drizzle 字段投影来查，会话令牌和敏感哈希压根不会序列化发给前端。
 
-Every user list in the admin interface is queried through hand-written Drizzle projections, so session tokens and sensitive hashes are never serialized to the front end.
+## 丢了 2FA 怎么办，为什么不用邮件重置而用 D1 Time Travel
 
-## Lost Your 2FA? Why I Use a D1 Time Travel Script Instead of Email Resets
+聊到两步验证，市面上很多产品的做法挺讽刺的。
 
-Many products' 2FA designs have an ironic hole:
+系统先苦口婆心让你开了 TOTP，还让你抄了一堆恢复码。结果你到了登录页点一下「验证器丢了」，页面立马热情弹个按钮，问要不要往注册邮箱发一封 2FA 重置链接。
 
-The system has you turn on TOTP and generates backup codes. But when you click "Lost my authenticator" on the sign-in page, it helpfully offers a button: "Email a 2FA reset link to your registered address."
+这一下就把两步验证的根给刨了。如果第一因素也就是邮箱，能单方面把第二因素关掉，那在安全模型里你的第二因素跟没装一样。谁撬开了你的邮箱，点一下就能把 TOTP 卸掉。
 
-That undermines the whole point of two-factor authentication.
+Easy Auth 前端故意不做任何自助重置 2FA 的入口。如果有人手机上的验证器丢了，恢复码也全弄丢了，唯一的路就是走**离线人工运维恢复**。
 
-If your second factor can be reset unilaterally through your first factor (email), then as far as the security model is concerned, your second factor doesn't exist. Anyone who gets into your mailbox can switch off your TOTP in one click.
-
-Easy Auth deliberately offers no self-service way to reset 2FA in the front end.
-
-If an account loses the authenticator app on its phone and also loses every backup code, the only way back is the **offline, operations-only recovery procedure**.
-
-I wrote an interactive terminal wizard for it, `scripts/recover-two-factor.sh`:
+我专门写了套交互式终端脚本 `scripts/recover-two-factor.sh` 来干这事。
 
 ```bash
-# Run 2FA recovery against production
+# 对生产库执行 2FA 恢复向导
 scripts/recover-two-factor.sh --remote
 ```
 
-The wizard must be run by an engineer with real operational access, after verifying the user's identity offline:
+运维人员得先通过线下渠道核实本人身份，再跑这套向导。
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Ops as Operator
-    actor User as Requesting user
-    participant Wizard as Recovery wizard (CLI)
+    actor Ops as 运维人员
+    actor User as 申请用户
+    participant Wizard as 恢复向导 (CLI)
     participant CF as Cloudflare API
     participant D1 as Cloudflare D1
 
-    User->>Ops: Requests recovery through an offline channel and passes strict identity checks
-    Ops->>Wizard: Starts scripts/recover-two-factor.sh --remote
-    Wizard->>CF: Captures the current D1 Time Travel bookmark via the API
-    CF-->>Wizard: Returns a restorable bookmark
-    Wizard->>D1: Looks up the immutable user ID and credential counts by email
-    D1-->>Wizard: Returns a preview of matching records (affected rows)
-    Wizard->>Ops: Asks to check the full user ID and type a confirmation phrase
-    Ops->>Wizard: Confirms the input matches
-    Wizard->>D1: Runs controlled SQL: removes TOTP, clears trusted devices, revokes all sessions and tokens
-    Wizard->>D1: Verifies the account's sensitive row counts are now zero
-    Wizard->>Ops: Reports completion and prints a one-step Time Travel rollback command
-    Ops->>User: Asks the user to sign in again and enroll a new TOTP
+    User->>Ops: 通过线下渠道申请恢复并完成身份核验
+    Ops->>Wizard: 启动 scripts/recover-two-factor.sh --remote
+    Wizard->>CF: 调用 API 记录当前 D1 Time Travel 书签
+    CF-->>Wizard: 返回可回滚书签
+    Wizard->>D1: 按邮箱查出不可变用户 ID 与凭证数量
+    D1-->>Wizard: 返回待影响记录预览
+    Wizard->>Ops: 要求核对完整用户 ID 并输入确认短语
+    Ops->>Wizard: 核对无误后确认执行
+    Wizard->>D1: 执行受控 SQL，清除 TOTP、信任设备并吊销所有会话与令牌
+    Wizard->>D1: 复查该账号敏感记录数已归零
+    Wizard->>Ops: 报告完成并打印一键 Time Travel 回滚命令
+    Ops->>User: 通知用户重新登录并绑定新的 TOTP
 ```
 
-This leans on Cloudflare D1's **Time Travel** feature. Before the wizard changes anything, it captures a bookmark of the current database state. If the operator realizes they entered the wrong email, or the user's identity turns out to be disputed, the bookmark restores the database exactly within seconds.
+这里借了个特别顺手的特性，Cloudflare D1 自带的 **Time Travel**。动刀子改数据之前，脚本会先打一个当前数据库状态的书签。万一运维手抖输错了邮箱，或者事后发现申请人身份存疑，照着脚本吐出来的命令几秒就能把数据库原样退回那一刻。
 
-Recovery revokes every Easy Auth session for the account, along with its stored OAuth refresh tokens and opaque access tokens, and the next time the account signs in, it must enroll a new TOTP secret. It can only revoke what Easy Auth stores, though: ID tokens already delivered to apps, and the apps' own local sessions, can't be recalled and expire under their own policies.
+恢复跑完以后，这个账号在 Easy Auth 里的全部会话、存下来的 OAuth 刷新令牌和不透明访问令牌都会一并作废，下次登录必须重绑一套新的 TOTP 密钥。当然也有管不到的边界，已经发给外部应用的 ID 令牌，还有外部应用自己建的本地会话，认证中心收不回来，只能等它们按各自的有效期自然过期。
 
-## A Workers Runtime Pitfall: Why Email Delivery Can't Just Be Awaited
+## Workers 运行时的一个暗坑，发邮件为什么不能直接去掉 await
 
-Sign-up verification codes and password reset emails go out through Resend's HTTP API.
+注册验证码和密码重置邮件都走 Resend 的 HTTP API。
 
-In the first version, I awaited the email API directly in the handler. A simple sign-up request jumped from 30 ms to 650 ms, most of it spent waiting on network handshakes across regions and data centers.
+第一版我直接 `await` 了发信接口，结果一个普普通通的注册请求，耗时直接从 30 ms 飙到了 650 ms，绝大部分时间全耗在跨机房的网络握手上。
 
-Then I came up with what I thought was a clever fix: drop the `await`, let the email send in the background, and return 200 to the front end right away.
+当时我自作聪明想了个快招，把 `await` 删掉，让邮件在后台自己慢慢发，接口先给前端回个 200。
 
 ```typescript
-// A serious mistake: never do this in a Cloudflare Worker
-resend.emails.send({ ... }); // no await, hoping it runs quietly in the background
+// 严重错误，在 Cloudflare Worker 里千万别这么写
+resend.emails.send({ ... }); // 去掉 await，指望它在后台悄悄发完
 return Response.json({ success: true });
 ```
 
-Everything worked fine in local development with Vite.
+本地跑 Vite 开发环境一切正常，一封没丢。
 
-But as soon as it shipped to Cloudflare Workers, verification emails started going missing in large numbers. It turned out that Cloudflare Workers run on a V8 isolate event-loop model: once the response for the current request has been returned and nothing registered is still pending, the edge node may suspend or tear down the Worker instance right away. That Promise, cut loose from its context, simply gets killed.
+结果一推到 Cloudflare Workers 线上，验证码邮件开始大面积人间蒸发。查下来才明白，Workers 跑在 V8 isolate 的事件循环模型上，只要当前请求的 Response 一返回，运行时看没有登记在案的待办任务，扭头就把这个实例挂起甚至销毁了。那个没挂钩的 Promise 当场被砍死。
 
-The right approach is the Workers-specific `waitUntil` mechanism. Easy Auth plugs it into Better Auth's `advanced.backgroundTasks` handler, so every background task the library starts goes through it:
+正确解法是用 Workers 专门给的 `waitUntil`。我把它接进了 Better Auth 的 `advanced.backgroundTasks` 钩子里，库里发起的所有后台任务都统一走这儿。
 
 ```typescript
 // src/lib/email-service.ts
@@ -405,24 +382,21 @@ export function scheduleBackgroundTask(
   onError: (error: unknown) => void = (error) =>
     console.error("Background email delivery failed", error),
 ): void {
-  // Tells the Workers runtime: this task isn't on the response path,
-  // but don't freeze the context until it finishes
+  // 告诉 Workers 运行时，这项任务不阻塞响应，但在它跑完前别把上下文冻住
   waitUntil(task.catch(onError));
 }
 ```
 
-With `waitUntil`, the browser gets the sign-up response within 25 ms, while the email's HTTP handshake finishes safely in the background. Responses stay fast, and no emails get lost.
+换上 `waitUntil` 之后，浏览器 25 ms 内就能拿到注册响应，邮件的 HTTP 握手在后台安安稳稳跑完，速度保住了，验证码邮件也一封没漏。
 
-## Connecting External Clients to Easy Auth
+## 外部应用怎么接进来
 
-With the authorization server running, how do trusted external apps connect to it?
+认证中心跑稳了，外面的项目接起来其实挺轻巧。Easy Auth 暴露了标准的 OIDC 发现端点 `/.well-known/openid-configuration`。
 
-Easy Auth exposes the standard OIDC discovery endpoint: `/.well-known/openid-configuration`.
-
-Take [Web Chat](https://github.com/Jazee6/web-chat), another app I've open-sourced, as an example. On the client side, Better Auth's `genericOAuth` plugin completes a standard OIDC integration in a few lines:
+就拿我自己开源的另一个项目 [Web Chat](https://github.com/Jazee6/web-chat) 来说，客户端用 Better Auth 的 `genericOAuth` 插件，十几行配置就接完了标准的 OIDC 登录。
 
 ```typescript
-// Example client configuration in an external app (Web Chat)
+// 外部应用客户端配置示例（Web Chat）
 import { betterAuth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 
@@ -433,12 +407,12 @@ export const auth = betterAuth({
       config: [
         {
           providerId: "idp",
-          // e.g. https://account.jaze.top/api/auth/.well-known/openid-configuration
+          // 例如 https://account.vuiki.com/api/auth/.well-known/openid-configuration
           discoveryUrl: env.OAUTH_DISCOVERY_URL,
           clientId: env.OAUTH_CLIENT_ID,
           clientSecret: env.OAUTH_CLIENT_SECRET,
-          authentication: "basic", // the client is registered with client_secret_basic
-          pkce: true, // PKCE guards against authorization code interception
+          authentication: "basic", // 客户端注册时采用 client_secret_basic
+          pkce: true, // 用 PKCE 防止授权码被截获
           requireIdTokenVerification: true,
           scopes: ["openid", "profile", "email"],
           overrideUserInfo: true,
@@ -449,10 +423,10 @@ export const auth = betterAuth({
 });
 ```
 
-If the external app uses [stateless session management](https://www.better-auth.com/docs/concepts/session-management#stateless-session-management), it doesn't even need database tables for sessions. It can pin its user ID to the `sub` issued by Easy Auth in the user-creation hook:
+如果外部应用走的是 [无状态会话管理](https://www.better-auth.com/docs/concepts/session-management#stateless-session-management)，甚至连自己的会话表都不用建。在创建用户的钩子里，直接把本地用户 ID 钉成 Easy Auth 签出来的 `sub` 就行。
 
 ```typescript
-// Unifying user IDs in a stateless external app
+// 在无状态外部应用中对齐全局用户 ID
 export const authConfig: BetterAuthOptions = {
   databaseHooks: {
     user: {
@@ -461,7 +435,7 @@ export const authConfig: BetterAuthOptions = {
           return {
             data: {
               ...user,
-              id: user.sub, // align with Easy Auth's immutable subject
+              id: user.sub, // 对齐 Easy Auth 的不可变主体标识
             },
           };
         },
@@ -471,22 +445,20 @@ export const authConfig: BetterAuthOptions = {
 };
 ```
 
-That way the external app keeps the lightweight, stateless nature of distributed JWTs and cookies, while staying strictly consistent with the global identity domain underneath.
+这样外部应用既保留了 JWT 加 Cookie 的无状态轻便，底下又跟全局身份域严丝合缝对得上号。
 
-## Known Limitations and Honest Trade-offs
+## 坦白说，这套方案也有三个妥协
 
-No architecture is a silver bullet. To stay minimal and edge-friendly, Easy Auth makes these known compromises:
+没有哪套架构包治百病，为了够轻、够贴合边缘环境，Easy Auth 有三处明面上的取舍。
 
-1. **A shared public subject (ADR-0002)**: In the ID tokens Easy Auth issues to every OAuth client, the `sub` claim is simply the internal immutable user ID. That makes it easy to connect user data across my own products, but it also means that different apps could in theory correlate the same person through `sub` (pairwise pseudonymous identifiers aren't supported).
-2. **Clients owned by a single administrator (ADR-0003)**: Every registered OAuth client belongs to the user ID of the administrator who created it; there's no enterprise-style team role model yet. If an administrator leaves, an operator has to run a one-line SQL update on `oauthClient.userId` directly in D1.
-3. **D1 write concurrency limits**: D1 is distributed SQLite underneath. Reads are very fast and edge replication is quick, but writes still follow the single-writer rule. Under a sudden burst of mass sign-ups, write throughput falls short of distributed Postgres. For small and medium independent projects, though, that ceiling is still far away.
+先说 **跨应用共享公开的 `sub`（ADR-0002）**。Easy Auth 发给每个 OAuth 客户端的 ID 令牌里，`sub` 字段直接填的就是内部不可变用户 ID。在我自己几个产品之间打通数据确实省事，可理论上不同的外部应用也能拿 `sub` 把同一个人关联起来，目前不支持按客户端隔离的成对匿名标识。
 
-## Wrapping Up
+再就是 **客户端归单个管理员名下（ADR-0003）**。每个注册好的 OAuth 客户端都挂在创建它的管理员用户 ID 底下，目前还没做企业级团队协作角色。哪天管理员离职交接，运维得去 D1 里跑一行 SQL，手动改一下 `oauthClient.userId`。
 
-Running a production-grade identity provider without renting a cloud server or setting up Docker containers is entirely feasible.
+最后绕不开的是 **D1 的写入并发上限**。D1 底层是分布式 SQLite，读得飞快、边缘同步也快，但写操作依然逃不开单写入者规则。要是突然涌进来大批人集中注册，写吞吐肯定干不过分布式 Postgres。不过对中小独立项目来说，离那个天花板还远着呢。
 
-Easy Auth runs on Cloudflare Workers and D1 and, together with TanStack Start and Better Auth, provides modern OAuth 2.1, PKCE, passwordless Passkey sign-in and TOTP protection.
+## 源码与试用
 
-The code is fully open source: [Jazee6/easy-auth](https://github.com/Jazee6/easy-auth).
+不租云服务器、不折腾 Docker 容器，把一套带 OAuth 2.1、Passkey 和 TOTP 的身份认证中心塞进 Cloudflare Workers 和 D1，这条路我已经替大家踩通了。
 
-If you're also looking for lightweight identity infrastructure that doesn't charge you for idle resources and gives you full control of your user data, feel free to borrow from it and get in touch.
+全部代码开源在 [Jazee6/easy-auth](https://github.com/Jazee6/easy-auth)，线上演示地址是 [account.vuiki.com](https://account.vuiki.com)。如果你也在找一套闲置时不花钱、用户数据又捏在自己手里的轻量身份服务，欢迎直接拿去改着玩，碰到问题也随时来聊。

@@ -1,12 +1,12 @@
 export const siteConfig: SiteConfig = {
     title: "Hi! Jazee",
-    language: "en",
+    language: "zh",
     description: "Jazee's personal blog. Powered by Astro Blog Theme Blur.",
     keywords: "Jazee, blog, personal blog, Astro, Astro Blog Theme Blur",
     author: "Jazee",
     avatar: "/avatar.avif",
     favicon: "/favicon.svg",
-    site: "https://jaze.top",
+    site: "https://vuiki.com",
 
     pageSize: 10,
 }
@@ -36,9 +36,9 @@ export const socialLinks: SocialLink[] = [
         url: 'https://github.com/Jazee6'
     },
     {
-        label: 'Email',
+        label: '邮箱',
         icon: 'material-symbols:mail-rounded',
-        url: 'mailto:jazee@jaze.top'
+        url: 'mailto:jazee@vuiki.com'
     }
 ]
 

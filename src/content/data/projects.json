@@ -3,24 +3,24 @@
     "id": 4,
     "title": "Web Chat",
     "repo": "https://github.com/Jazee6/web-chat",
-    "description": "Telegram-style chat app that fits the Cloudflare Workers Free plan"
+    "description": "可运行在 Cloudflare Workers 免费方案上的类 Telegram 聊天应用"
   },
   {
     "id": 3,
     "title": "Easy Auth",
     "repo": "https://github.com/Jazee6/easy-auth",
-    "description": "Self-hosted Better Auth OIDC & SSO provider"
+    "description": "基于 Better Auth 的自托管 OIDC 与单点登录服务"
   },
   {
     "id": 2,
     "title": "Cloudflare AI Web",
     "repo": "https://github.com/Jazee6/cloudflare-ai-web",
-    "description": "Cloudflare AI Platform with one-click deployment"
+    "description": "支持一键部署的 Cloudflare AI 平台"
   },
   {
     "id": 1,
     "title": "Astro Blur",
     "repo": "https://github.com/Jazee6/astro-blur",
-    "description": "A static blog theme built with Astro"
+    "description": "基于 Astro 构建的静态博客主题"
   }
 ]
